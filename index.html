@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EmuHook: Cyber Terminal v6.0</title>
+    <title>EmuHook: Cyber Terminal v6.6</title>
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAALFJREFUWEftl8sNgzAMRF8c7H8lc7B7YfU6e2gEy6N48mTqkrBAIQiCIAiCIAiCIAiCIAiCIAiCIAiC4B/3eAdagKXF9z6Samap9dZYd95SaTmbT2u0mc6m8/F0MZtP5+P5YjabT+fj8WI2n87H48VsPp2Px4vZfDofjxfz+XQ+nk/n4/FiNp/Op/PpfDqfj8eL2Xw6H48Xs/l0Pp5P5+Pxfj6fj+fT+Xg+n88v9oC6xQAAAABJRU5ErkJggg==">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
             --neon-intensity: 1;
@@ -24,10 +25,28 @@
             background: var(--secondary-color);
             color: var(--primary-color);
             overflow-x: hidden;
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M10 0v8m0 4v8M0 10h8m4 0h8" stroke="%23ff1a1a" stroke-width="2"/></svg>'), auto;
-            transition: background 0.5s;
+            cursor: none;
         }
-        #particles-js, #three-js {
+        .custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="%23ff1a1a" stroke-width="2"/><circle cx="10" cy="10" r="2" fill="%23ff1a1a"/></svg>') no-repeat center;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.1s;
+        }
+        .cursor-trail {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: rgba(255, 26, 26, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            animation: fadeOut 0.5s forwards;
+        }
+        #particles-js {
             position: fixed;
             top: 0;
             left: 0;
@@ -56,22 +75,21 @@
             animation: scanlines calc(10s / var(--animation-speed)) linear infinite;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 60px auto 20px;
             padding: 20px;
             border: 2px solid var(--primary-color);
-            box-shadow: 0 0 40px rgba(255, 26, 26, 0.3);
-            border-radius: 10px;
-            position: relative;
+            box-shadow: 0 0 30px rgba(255, 26, 26, 0.3);
+            border-radius: 8px;
             background: rgba(10, 10, 10, 0.9);
         }
         .logo {
             display: flex;
             align-items: center;
-            font-size: 1.8em;
-            text-shadow: 0 0 15px var(--primary-color), 0 0 30px var(--primary-color);
+            gap: 8px;
+            font-size: 1.5em;
+            text-shadow: 0 0 10px var(--primary-color);
             animation: neon-pulse calc(1.5s / var(--animation-speed)) infinite;
-            margin: 0 10px;
         }
         .nav-bar {
             position: fixed;
@@ -80,39 +98,36 @@
             width: 100%;
             background: rgba(10, 10, 10, 0.95);
             border-bottom: 2px solid var(--primary-color);
-            box-shadow: 0 0 15px rgba(255, 26, 26, 0.5);
+            box-shadow: 0 0 10px rgba(255, 26, 26, 0.5);
             z-index: 10;
             display: flex;
             align-items: center;
-            padding: 5px;
+            padding: 5px 10px;
             height: 50px;
         }
         .nav-bar button {
             background: none;
             border: 2px solid var(--primary-color);
             color: var(--primary-color);
-            padding: 5px 10px;
-            cursor: pointer;
+            padding: 6px 12px;
+            cursor: none;
             transition: all 0.3s;
-            text-shadow: 0 0 5px var(--primary-color);
             border-radius: 5px;
             font-size: 0.9em;
-            margin: 0 3px;
+            margin: 0 4px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
         }
         .nav-bar button:hover, .nav-bar button.active {
             background: var(--primary-color);
             color: var(--secondary-color);
-            box-shadow: 0 0 15px var(--primary-color);
-            animation: glitch 0.3s;
+            box-shadow: 0 0 10px var(--primary-color);
         }
         .status-bar {
             position: absolute;
             top: 10px;
             left: 10px;
-            color: var(--primary-color);
             font-size: 0.8em;
             text-shadow: 0 0 5px var(--primary-color);
         }
@@ -120,7 +135,6 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            color: var(--primary-color);
             font-size: 0.8em;
             text-shadow: 0 0 5px var(--primary-color);
         }
@@ -134,14 +148,13 @@
             opacity: 1;
         }
         .category {
-            margin: 15px 0;
+            margin: 10px 0;
             border: 1px solid var(--primary-color);
             border-radius: 5px;
             overflow: hidden;
-            animation: fadeIn 0.5s;
         }
         .category-header {
-            background: rgba(26, 26, 26, 0.5);
+            background: rgba(26, 26, 26, 0.6);
             padding: 8px;
             cursor: pointer;
             display: flex;
@@ -166,7 +179,7 @@
             border: none;
             border-bottom: 2px solid var(--primary-color);
             color: var(--primary-color);
-            padding: 8px 5px;
+            padding: 6px;
             margin: 5px 0;
             width: 100%;
             font-family: 'Courier New', Courier, monospace;
@@ -174,7 +187,7 @@
         }
         input:focus, select:focus {
             border-bottom-color: #ff4d4d;
-            box-shadow: 0 2px 10px rgba(255, 26, 26, 0.5);
+            box-shadow: 0 2px 8px rgba(255, 26, 26, 0.5);
             outline: none;
         }
         .ql-container {
@@ -184,24 +197,24 @@
             color: var(--primary-color);
         }
         .ql-toolbar {
-            background: rgba(26, 26, 26, 0.5);
+            background: rgba(26, 26, 26, 0.6);
             border: 1px solid var(--primary-color);
             border-radius: 5px 5px 0 0;
         }
         .spinner {
             display: none;
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             border: 3px solid var(--primary-color);
             border-top: 3px solid transparent;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 10px auto;
+            margin: 8px auto;
         }
         .spinner.active {
             display: block;
         }
-        #liveStream, #liveStreamSpam, #messageHistory, #logContent {
+        #liveStream, #liveStreamSpam, #messageHistory, #logContent, #terminal, #helpContent {
             background: rgba(10, 10, 10, 0.8);
             border: 1px solid var(--primary-color);
             padding: 10px;
@@ -216,19 +229,18 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px;
+            padding: 8px;
             border-bottom: 1px solid var(--primary-color);
-            animation: fadeIn 0.5s;
         }
         .webhook-avatar {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             border: 2px solid var(--primary-color);
-            margin: 10px;
+            margin-right: 10px;
         }
         .neon {
-            text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
+            text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color);
         }
         .tooltip {
             position: relative;
@@ -247,7 +259,6 @@
             white-space: nowrap;
             z-index: 10;
             text-shadow: 0 0 5px var(--primary-color);
-            animation: fadeIn 0.3s;
         }
         .log-toggle {
             position: fixed;
@@ -256,42 +267,37 @@
             background: rgba(10, 10, 10, 0.9);
             border: 2px solid var(--primary-color);
             color: var(--primary-color);
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            cursor: pointer;
-            text-shadow: 0 0 5px var(--primary-color);
+            cursor: none;
             transition: all 0.3s;
-            animation: float 2s ease-in-out infinite;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.7em;
         }
         .log-toggle:hover {
             background: var(--primary-color);
             color: var(--secondary-color);
-            box-shadow: 0 0 20px var(--primary-color);
-            transform: scale(1.1);
+            box-shadow: 0 0 15px var(--primary-color);
         }
         .log-window {
             position: fixed;
-            bottom: 80px;
+            bottom: 70px;
             right: 20px;
-            width: 400px;
-            height: 250px;
+            width: 350px;
+            height: 200px;
             background: rgba(10, 10, 10, 0.9);
             border: 2px solid var(--primary-color);
             border-radius: 5px;
             display: none;
             z-index: 20;
-            box-shadow: 0 0 20px rgba(255, 26, 26, 0.5);
         }
         .log-window.active {
             display: block;
         }
         .log-header {
-            background: rgba(26, 26, 26, 0.5);
+            background: rgba(26, 26, 26, 0.6);
             padding: 5px 10px;
             display: flex;
             justify-content: space-between;
@@ -302,8 +308,8 @@
             background: none;
             border: none;
             color: var(--primary-color);
-            cursor: pointer;
-            font-size: 1.2em;
+            cursor: none;
+            font-size: 1em;
         }
         .log-close:hover {
             color: var(--secondary-color);
@@ -311,250 +317,230 @@
         }
         .dashboard {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            margin: 20px 0;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px;
+            margin: 15px 0;
         }
         .dashboard-card {
-            background: rgba(26, 26, 26, 0.5);
-            padding: 10px;
+            background: rgba(26, 26, 26, 0.6);
+            padding: 12px;
             border: 1px solid var(--primary-color);
             border-radius: 5px;
             text-align: center;
+            transition: transform 0.3s;
+        }
+        .dashboard-card:hover {
+            transform: scale(1.03);
         }
         @keyframes glitch {
-            2%, 64% { transform: translate(4px, 0) skew(10deg); }
-            4%, 60% { transform: translate(-4px, 0) skew(-10deg); }
+            2%, 64% { transform: translate(3px, 0) skew(5deg); }
+            4%, 60% { transform: translate(-3px, 0) skew(-5deg); }
             62% { transform: translate(0, 0) skew(0deg); }
         }
         @keyframes neon-pulse {
-            0%, 100% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); }
-            50% { text-shadow: 0 0 15px var(--primary-color), 0 0 30px var(--primary-color), 0 0 50px var(--primary-color); }
+            0%, 100% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+            50% { text-shadow: 0 0 12px var(--primary-color), 0 0 20px var(--primary-color); }
         }
         @keyframes scanlines {
             0% { background-position: 0 0; }
-            100% { background-position: 0 100px; }
+            100% { background-position: 0 80px; }
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        @keyframes fadeOut {
+            from { opacity: 0.5; }
+            to { opacity: 0; }
         }
     </style>
 </head>
 <body>
+    <div class="custom-cursor" id="cursor"></div>
     <div id="particles-js"></div>
-    <div id="three-js"></div>
     <div class="matrix-rain"><canvas id="matrix"></canvas></div>
     <div class="hologram"></div>
     <div class="nav-bar">
-        <div class="logo">
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAALFJREFUWEftl8sNgzAMRF8c7H8lc7B7YfU6e2gEy6N48mTqkrBAIQiCIAiCIAiCIAiCIAiCIAiCIAiC4B/3eAdagKXF9z6Samap9dZYd95SaTmbT2u0mc6m8/F0MZtP5+P5YjabT+fj8WI2n87H48VsPp2Px4vZfDofjxfz+XQ+nk/n4/FiNp/Op/PpfDqfj8eL2Xw6H48Xs/l0Pp5P5+Pxfj6fj+fT+Xg+n88v9oC6xQAAAABJRU5ErkJggg==" alt="EmuHook Icon">
-            EmuHook v6.0
-        </div>
-        <button onclick="showPage('dashboard')" class="active" data-tooltip="Ctrl+0: System Dashboard">
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAGFJREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAP4O3jEAAAAASUVORK5CYII=" alt="Dashboard Icon"> Dashboard
-        </button>
-        <button onclick="showPage('home')" data-tooltip="Ctrl+1: Webhook Control">
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAGFJREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAP4O3jEAAAAASUVORK5CYII=" alt="Home Icon"> Home
-        </button>
-        <button onclick="showPage('send')" data-tooltip="Ctrl+2: Send Messages">
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF1JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOf3xRYAAAAASUVORK5CYII=" alt="Send Icon"> Send
-        </button>
-        <button onclick="showPage('spam')" data-tooltip="Ctrl+3: Spam Control">
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAGBJREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAP0W4uEAAAAASUVORK5CYII=" alt="Spam Icon"> Spam
-        </button>
-        <button onclick="showPage('saved')" data-tooltip="Ctrl+4: Saved Webhooks">
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF9JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOfFxRUAAAAASUVORK5CYII=" alt="Saved Icon"> Saved
-        </button>
-        <button onclick="showPage('history')" data-tooltip="Ctrl+5: Message History">
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF5JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOcXhRYAAAAASUVORK5CYII=" alt="History Icon"> History
-        </button>
-        <button onclick="showPage('settings')" data-tooltip="Ctrl+6: System Config">
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF1JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOf3xRYAAAAASUVORK5CYII=" alt="Settings Icon"> Settings
-        </button>
+        <div class="logo"><i class="fas fa-plug"></i> EmuHook v6.6</div>
+        <button onclick="showPage('dashboard')" class="active" data-tooltip="Ctrl+0: View system stats"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
+        <button onclick="showPage('home')" data-tooltip="Ctrl+1: Manage webhooks"><i class="fas fa-home"></i> Home</button>
+        <button onclick="showPage('send')" data-tooltip="Ctrl+2: Send messages"><i class="fas fa-paper-plane"></i> Send</button>
+        <button onclick="showPage('spam')" data-tooltip="Ctrl+3: Test webhooks"><i class="fas fa-bolt"></i> Spam</button>
+        <button onclick="showPage('saved')" data-tooltip="Ctrl+4: View saved webhooks"><i class="fas fa-save"></i> Saved</button>
+        <button onclick="showPage('history')" data-tooltip="Ctrl+5: Message history"><i class="fas fa-history"></i> History</button>
+        <button onclick="showPage('settings')" data-tooltip="Ctrl+6: System settings"><i class="fas fa-cog"></i> Settings</button>
+        <button onclick="showPage('help')" data-tooltip="Ctrl+7: How to use EmuHook"><i class="fas fa-question-circle"></i> Help</button>
     </div>
     <div class="container">
-        <div class="status-bar" id="statusBar"></div>
-        <div class="user-info" id="userInfo">Not Logged In</div>
+        <div class="status-bar" id="statusBar">System initializing...</div>
+        <div class="user-info" id="userInfo">Guest</div>
         <div id="dashboard" class="page active">
+            <h2 class="text-lg neon mb-3">System Dashboard</h2>
             <div class="dashboard">
-                <div class="dashboard-card">
-                    <h3 class="neon">Webhook Count</h3>
-                    <p id="webhookCount">0</p>
-                </div>
-                <div class="dashboard-card">
-                    <h3 class="neon">Messages Sent</h3>
-                    <p id="messagesSent">0</p>
-                </div>
-                <div class="dashboard-card">
-                    <h3 class="neon">System Uptime</h3>
-                    <p id="uptime">0s</p>
-                </div>
-                <div class="dashboard-card">
-                    <h3 class="neon">Rate Limit</h3>
-                    <p id="rateLimit">100%</p>
-                </div>
+                <div class="dashboard-card"><i class="fas fa-plug fa-lg mb-2"></i><h3 class="neon">Webhooks</h3><p id="webhookCount">0</p></div>
+                <div class="dashboard-card"><i class="fas fa-paper-plane fa-lg mb-2"></i><h3 class="neon">Messages Sent</h3><p id="messagesSent">0</p></div>
+                <div class="dashboard-card"><i class="fas fa-clock fa-lg mb-2"></i><h3 class="neon">Uptime</h3><p id="uptime">0s</p></div>
+                <div class="dashboard-card"><i class="fas fa-tachometer-alt fa-lg mb-2"></i><h3 class="neon">Rate Limit</h3><p id="rateLimit">100%</p></div>
             </div>
         </div>
         <div id="home" class="page">
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF1JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOf3xRYAAAAASUVORK5CYII=" alt="Webhook Input Icon"> Webhook Input
-                </div>
+                <div class="category-header" onclick="toggleCategory(this)"><i class="fas fa-plug"></i> Webhook Management</div>
                 <div class="category-content active">
-                    <input type="text" id="webhookName" placeholder="Webhook Name (Optional)" data-tooltip="Assign a codename to your webhook">
-                    <input type="text" id="webhookUrl" placeholder="Enter Discord Webhook URL" data-tooltip="Insert webhook URL for validation">
-                    <button onclick="validateWebhook()" data-tooltip="Verify webhook integrity">Validate Webhook</button>
-                    <button onclick="saveWebhook()" data-tooltip="Store webhook in system">Save Webhook</button>
-                    <button onclick="loginWithDiscord()" data-tooltip="Authenticate via Discord network">Login with Discord</button>
+                    <label class="block text-sm neon mb-2">Webhook Name</label>
+                    <input type="text" id="webhookName" placeholder="Name your webhook" data-tooltip="Optional name for webhook">
+                    <label class="block text-sm neon mb-2">Webhook URL</label>
+                    <input type="text" id="webhookUrl" placeholder="Enter Discord webhook URL" data-tooltip="URL for sending messages">
+                    <div class="flex gap-2 mt-2">
+                        <button onclick="validateWebhook()" data-tooltip="Verify webhook URL"><i class="fas fa-check"></i> Validate</button>
+                        <button onclick="saveWebhook()" data-tooltip="Save webhook"><i class="fas fa-save"></i> Save</button>
+                    </div>
                     <div class="spinner" id="validateSpinner"></div>
                 </div>
             </div>
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF9JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOfFxRUAAAAASUVORK5CYII=" alt="Webhook Profile Icon"> Webhook Profile
-                </div>
+                <div class="category-header" onclick="toggleCategory(this)"><i class="fas fa-user"></i> Webhook Profile</div>
                 <div class="category-content" id="webhookProfile"></div>
             </div>
         </div>
         <div id="send" class="page">
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF1JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOf3xRYAAAAASUVORK5CYII=" alt="Message Sender Icon"> Message Sender
-                </div>
+                <div class="category-header" onclick="toggleCategory(this)"><i class="fas fa-paper-plane"></i> Message Sender</div>
                 <div class="category-content active">
-                    <select id="destination" data-tooltip="Select target webhook for transmission">
-                        <option value="">Select Webhook</option>
+                    <label class="block text-sm neon mb-2">Select Webhook</label>
+                    <select id="destination" data-tooltip="Choose a saved webhook">
+                        <option value="">Select a Webhook</option>
                     </select>
-                    <select id="predefinedMessages" data-tooltip="Choose a pre-coded payload">
+                    <label class="block text-sm neon mb-2">Quick Messages</label>
+                    <select id="predefinedMessages" data-tooltip="Select or type a message">
                         <option value="">Custom Message</option>
                         <option value="> [EmuHook] Initiating cyber sequence...">Cyber Sequence</option>
                         <option value="> [ALERT] Mainframe breach detected!">Mainframe Breach</option>
                         <option value="> [SYSTEM] Override protocols engaged!">Override Protocols</option>
-                        <option value="> [TEST] Probing network defenses...">Network Probe</option>
-                        <option value="> [HACK] Accessing secure channels...">Secure Channels</option>
-                        <option value="> [SHADOW] Infiltrating data streams...">Data Infiltration</option>
                     </select>
-                    <div id="messageEditor" style="height: 200px;"></div>
-                    <input type="file" id="attachment" accept="image/*,video/*,application/pdf" data-tooltip="Upload attachment for message">
-                    <input type="number" id="sendDelay" min="0" step="1" placeholder="Delay (seconds)" data-tooltip="Schedule message delay">
+                    <label class="block text-sm neon mb-2">Message</label>
+                    <div id="messageEditor" style="height: 150px;" data-tooltip="Format your message"></div>
+                    <label class="block text-sm neon mb-2">Attachment</label>
+                    <input type="file" id="attachment" accept="image/*,video/*,application/pdf" data-tooltip="Upload image, video, or PDF">
+                    <label class="block text-sm neon mb-2">Send Delay (Seconds)</label>
+                    <input type="number" id="sendDelay" min="0" step="1" placeholder="0" data-tooltip="Delay before sending">
                     <div class="category">
-                        <div class="category-header" onclick="toggleCategory(this)">
-                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF5JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOcXhRYAAAAASUVORK5CYII=" alt="Embed Options Icon"> Embed Options
-                        </div>
+                        <div class="category-header" onclick="toggleCategory(this)"><i class="fas fa-file-alt"></i> Embed Options</div>
                         <div class="category-content">
-                            <input type="text" id="embedTitle" placeholder="Embed Title" data-tooltip="Set embed title">
-                            <input type="text" id="embedDescription" placeholder="Embed Description" data-tooltip="Set embed description">
-                            <input type="color" id="embedColor" value="#ff1a1a" data-tooltip="Set embed color">
+                            <label class="block text-sm neon mb-2">Embed Title</label>
+                            <input type="text" id="embedTitle" placeholder="Embed title" data-tooltip="Title for embed">
+                            <label class="block text-sm neon mb-2">Embed Description</label>
+                            <input type="text" id="embedDescription" placeholder="Embed description" data-tooltip="Description for embed">
+                            <label class="block text-sm neon mb-2">Embed Color</label>
+                            <input type="color" id="embedColor" value="#ff1a1a" data-tooltip="Embed color">
                         </div>
                     </div>
-                    <button onclick="sendMessage()" data-tooltip="Transmit message to target">Send</button>
+                    <button onclick="sendMessage()" data-tooltip="Send message"><i class="fas fa-paper-plane"></i> Send</button>
                     <div class="spinner" id="sendSpinner"></div>
                 </div>
             </div>
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAGBJREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAP0W4uEAAAAASUVORK5CYII=" alt="Live Stream Icon"> Live Stream
-                </div>
+                <div class="category-header" onclick="toggleCategory(this)"><i class="fas fa-tv"></i> Live Stream</div>
                 <div class="category-content active" id="liveStream"></div>
             </div>
         </div>
         <div id="spam" class="page">
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAGFJREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAP4O3jEAAAAASUVORK5CYII=" alt="Spam Console Icon"> Spam Console
-                </div>
+                <div class="category-header" onclick="toggleCategory(this)"><i class="fas fa-bolt"></i> Spam Console</div>
                 <div class="category-content active">
-                    <select id="spamDestination" data-tooltip="Select target webhook for spam">
-                        <option value="">Select Webhook</option>
+                    <label class="block text-sm neon mb-2">Select Webhook</label>
+                    <select id="spamDestination" data-tooltip="Choose webhook for testing">
+                        <option value="">Select a Webhook</option>
                     </select>
-                    <select id="spamPredefinedMessages" data-tooltip="Choose a pre-coded spam payload">
+                    <label class="block text-sm neon mb-2">Quick Messages</label>
+                    <select id="spamPredefinedMessages" data-tooltip="Select or type a message">
                         <option value="">Custom Message</option>
                         <option value="> [EmuHook] Initiating cyber sequence...">Cyber Sequence</option>
                         <option value="> [ALERT] Mainframe breach detected!">Mainframe Breach</option>
                         <option value="> [SYSTEM] Override protocols engaged!">Override Protocols</option>
-                        <option value="> [TEST] Probing network defenses...">Network Probe</option>
-                        <option value="> [HACK] Accessing secure channels...">Secure Channels</option>
-                        <option value="> [SHADOW] Infiltrating data streams...">Data Infiltration</option>
                     </select>
-                    <div id="spamMessageEditor" style="height: 200px;"></div>
-                    <input type="number" id="spamCount" min="1" placeholder="Number of messages" data-tooltip="Set transmission count">
-                    <input type="number" id="spamDelay" min="0" step="0.1" placeholder="Delay (seconds)" data-tooltip="Set delay between transmissions">
-                    <input type="number" id="batchSize" min="1" placeholder="Batch Size" data-tooltip="Messages per batch">
-                    <label><input type="checkbox" id="randomizeMessages" data-tooltip="Randomize predefined messages"> Randomize Messages</label>
-                    <div id="rateLimitStatus" class="neon">Rate Limit: 100%</div>
-                    <button onclick="spamMessages()" data-tooltip="Initiate spam sequence">Start Spamming</button>
-                    <button onclick="cancelSpam()" data-tooltip="Halt spam sequence">Cancel</button>
+                    <label class="block text-sm neon mb-2">Message</label>
+                    <div id="spamMessageEditor" style="height: 150px;" data-tooltip="Format spam message"></div>
+                    <label class="block text-sm neon mb-2">Message Count</label>
+                    <input type="number" id="spamCount" min="1" placeholder="1" data-tooltip="Number of messages">
+                    <label class="block text-sm neon mb-2">Delay (Seconds)</label>
+                    <input type="number" id="spamDelay" min="0" step="0.1" placeholder="0" data-tooltip="Delay between messages">
+                    <label class="flex items-center gap-2 mt-2">
+                        <input type="checkbox" id="randomizeMessages" data-tooltip="Randomize messages">
+                        <span>Randomize</span>
+                    </label>
+                    <div id="rateLimitStatus" class="neon mt-2">Rate Limit: 100%</div>
+                    <div class="flex gap-2 mt-2">
+                        <button onclick="spamMessages()" data-tooltip="Start spamming"><i class="fas fa-play"></i> Start</button>
+                        <button onclick="cancelSpam()" data-tooltip="Stop spamming"><i class="fas fa-stop"></i> Stop</button>
+                    </div>
                     <div class="spinner" id="spamSpinner"></div>
                 </div>
             </div>
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAGBJREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAP0W4uEAAAAASUVORK5CYII=" alt="Live Stream Icon"> Live Stream
-                </div>
+                <div class="category-header" onclick="toggleCategory(this)"><i class="fas fa-tv"></i> Live Stream</div>
                 <div class="category-content active" id="liveStreamSpam"></div>
             </div>
         </div>
         <div id="saved" class="page">
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF9JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOfFxRUAAAAASUVORK5CYII=" alt="Saved Webhooks Icon"> Saved Webhooks
-                </div>
+                <div class="category-header" onclick="toggleCategory(this)"><i class="fas fa-save"></i> Saved Webhooks</div>
                 <div class="category-content active" id="savedWebhooks"></div>
             </div>
         </div>
         <div id="history" class="page">
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF5JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOcXhRYAAAAASUVORK5CYII=" alt="Message History Icon"> Message History
-                </div>
+                <div class="category-header" onclick="toggleCategory(this)"><i class="fas fa-history"></i> Message History</div>
                 <div class="category-content active" id="messageHistory"></div>
             </div>
         </div>
         <div id="settings" class="page">
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF1JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOf3xRYAAAAASUVORK5CYII=" alt="System Settings Icon"> System Settings
-                </div>
+                <div class="category-header" onclick="toggleCategory(this)"><i class="fas fa-cog"></i> System Settings</div>
                 <div class="category-content active">
-                    <label>Neon Intensity:</label>
-                    <input type="range" id="neonIntensity" min="0.5" max="2" step="0.1" value="1" data-tooltip="Adjust neon glow strength">
-                    <label>Animation Speed:</label>
-                    <input type="range" id="animationSpeed" min="0.5" max="2" step="0.1" value="1" data-tooltip="Adjust animation velocity">
-                    <label>Theme Color:</label>
-                    <input type="color" id="themeColor" value="#ff1a1a" data-tooltip="Set primary theme color">
-                    <label><input type="checkbox" id="darkMode" checked data-tooltip="Toggle dark/light mode"> Dark Mode</label>
-                    <button onclick="clearSavedWebhooks()" data-tooltip="Erase all saved webhooks">Clear Saved Webhooks</button>
-                    <button onclick="logout()" data-tooltip="Terminate session">Logout</button>
+                    <label class="block text-sm neon mb-2">Neon Intensity</label>
+                    <input type="range" id="neonIntensity" min="0.5" max="2" step="0.1" value="1" data-tooltip="Adjust glow effect">
+                    <label class="block text-sm neon mb-2">Animation Speed</label>
+                    <input type="range" id="animationSpeed" min="0.5" max="2" step="0.1" value="1" data-tooltip="Adjust animation speed">
+                    <label class="block text-sm neon mb-2">Theme Color</label>
+                    <input type="color" id="themeColor" value="#ff1a1a" data-tooltip="Choose theme color">
+                    <label class="flex items-center gap-2 mt-2">
+                        <input type="checkbox" id="darkMode" checked data-tooltip="Toggle dark/light mode">
+                        <span>Dark Mode</span>
+                    </label>
+                    <button onclick="clearSavedWebhooks()" data-tooltip="Clear all webhooks"><i class="fas fa-trash"></i> Clear Webhooks</button>
                 </div>
             </div>
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF1JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOf3xRYAAAAASUVORK5CYII=" alt="System Diagnostics Icon"> System Diagnostics
-                </div>
+                <div class="category-header" onclick="toggleCategory(this)"><i class="fas fa-tools"></i> Diagnostics</div>
                 <div class="category-content" id="diagnostics"></div>
             </div>
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF1JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOf3xRYAAAAASUVORK5CYII=" alt="Terminal Icon"> Terminal
-                </div>
+                <div class="category-header" onclick="toggleCategory(this)"><i class="fas fa-terminal"></i> Command Terminal</div>
                 <div class="category-content active">
-                    <div id="terminal" style="height: 200px; background: rgba(10, 10, 10, 0.8); border: 1px solid var(--primary-color); padding: 10px; border-radius: 5px;"></div>
+                    <div id="terminal" contenteditable="true" data-tooltip="Type commands (e.g., 'clear', 'status')"></div>
+                </div>
+            </div>
+        </div>
+        <div id="help" class="page">
+            <div class="category">
+                <div class="category-header" onclick="toggleCategory(this)"><i class="fas fa-question-circle"></i> Help & Guide</div>
+                <div class="category-content active" id="helpContent">
+                    <p>> [EmuHook] Welcome to the Cyber Terminal v6.6</p>
+                    <p>> Use the navigation bar to switch sections (Ctrl+0 to Ctrl+7).</p>
+                    <p>> <strong>Dashboard</strong>: View system stats like webhook count and uptime.</p>
+                    <p>> <strong>Home</strong>: Add and validate Discord webhook URLs.</p>
+                    <p>> <strong>Send</strong>: Send messages or files to a webhook. Use embeds for rich content.</p>
+                    <p>> <strong>Spam</strong>: Test webhooks with repeated messages. Set count and delay.</p>
+                    <p>> <strong>Saved</strong>: Manage saved webhooks (load or delete).</p>
+                    <p>> <strong>History</strong>: Review sent messages.</p>
+                    <p>> <strong>Settings</strong>: Customize theme, neon effects, and run commands like 'clear' or 'status'.</p>
+                    <p>> Hover over buttons and inputs for tooltips. Check logs for system activity.</p>
                 </div>
             </div>
         </div>
     </div>
-    <button class="log-toggle" onclick="toggleLogWindow()" data-tooltip="View system logs">
-        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF5JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOcXhRYAAAAASUVORK5CYII=" alt="Log Icon">
-    </button>
+    <button class="log-toggle" onclick="toggleLogWindow()" data-tooltip="View system logs"><i class="fas fa-file-alt"></i></button>
     <div class="log-window" id="logWindow">
         <div class="log-header">
             <span>System Logs</span>
@@ -564,265 +550,242 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/howler@2.2.3/dist/howler.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
     <script>
-        // Particles.js
-        particlesJS('particles-js', {
-            particles: {
-                number: { value: 200, density: { enable: true, value_area: 800 } },
-                color: { value: '#ff1a1a' },
-                shape: { type: ['circle', 'triangle', 'edge', 'star'] },
-                opacity: { value: 0.8, random: true },
-                size: { value: 5, random: true },
-                line_linked: { enable: true, distance: 100, color: '#ff1a1a', opacity: 0.6, width: 2 },
-                move: { enable: true, speed: 5, direction: 'none', random: true }
-            },
-            interactivity: {
-                detect_on: 'canvas',
-                events: { onhover: { enable: true, mode: 'repulse' }, onclick: { enable: true, mode: 'push' } },
-                modes: { repulse: { distance: 150 }, push: { particles_nb: 10 } }
-            }
-        });
-
-        // Three.js Holographic Effect
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('three-js').appendChild(renderer.domElement);
-        const geometry = new THREE.SphereGeometry(5, 32, 32);
-        const material = new THREE.MeshBasicMaterial({ color: 0xff1a1a, wireframe: true });
-        const sphere = new THREE.Mesh(geometry, material);
-        scene.add(sphere);
-        camera.position.z = 10;
-        function animateThree() {
-            requestAnimationFrame(animateThree);
-            sphere.rotation.x += 0.01;
-            sphere.rotation.y += 0.01;
-            renderer.render(scene, camera);
-        }
-        animateThree();
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // Matrix Rain
-        const canvas = document.getElementById('matrix');
-        const ctx = canvas.getContext('2d');
-        canvas.height = window.innerHeight;
-        canvas.width = window.innerWidth;
-        const chars = '0101EMUH00K1010ハッカーマトリックス';
-        const fontSize = 14;
-        const columns = canvas.width / fontSize;
-        const drops = Array(Math.floor(columns)).fill(0);
-        function drawMatrix() {
-            ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#ff1a1a';
-            ctx.font = fontSize + 'px monospace';
-            for (let i = 0; i < drops.length; i++) {
-                const text = chars.charAt(Math.random() * chars.length);
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-                drops[i]++;
-            }
-        }
-        setInterval(drawMatrix, 33);
-
-        // Sound Effects
-        const beep = new Howl({ src: ['https://cdn.pixabay.com/audio/2022/03/10/audio_6b1c7f6b1f.mp3'], volume: 0.3 });
-
-        // Quill Editors
-        const messageEditor = new Quill('#messageEditor', {
-            theme: 'snow',
-            modules: { toolbar: [['bold', 'italic', 'code-block']] }
-        });
-        const spamMessageEditor = new Quill('#spamMessageEditor', {
-            theme: 'snow',
-            modules: { toolbar: [['bold', 'italic', 'code-block']] }
-        });
-
         // State
         let webhookUrl = '';
         let isSpamming = false;
-        let savedWebhooks = JSON.parse(localStorage.getItem('webhooks') || '[]').map(w => ({
-            name: w.name,
-            url: CryptoJS.AES.decrypt(w.url, 'secret-key').toString(CryptoJS.enc.Utf8)
-        }));
-        let messageHistory = JSON.parse(localStorage.getItem('messageHistory') || '[]');
-        let user = null;
+        let savedWebhooks = [];
+        let messageHistory = [];
         let messagesSent = 0;
-        const startTime = Date.now();
+        let startTime = Date.now();
+        let beep, messageEditor, spamMessageEditor;
 
         function log(message) {
-            beep.play();
+            if (beep) beep.play();
             const logContent = document.getElementById('logContent');
-            const entry = document.createElement('div');
-            entry.textContent = `> [${new Date().toLocaleTimeString()}] ${message}`;
-            logContent.appendChild(entry);
-            logContent.scrollTop = logContent.scrollHeight;
-        }
-
-        function updateLiveStream(message, streamId = 'liveStream') {
-            const stream = document.getElementById(streamId);
-            const entry = document.createElement('div');
-            entry.textContent = `> [${new Date().toLocaleTimeString()}] ${user ? user.username : 'EmuHook'}: ${message}`;
-            entry.style.animation = 'fadeIn 0.5s';
-            stream.appendChild(entry);
-            stream.scrollTop = stream.scrollHeight;
-            messageHistory.push({ time: new Date().toLocaleTimeString(), message, sender: user ? user.username : 'EmuHook' });
-            localStorage.setItem('messageHistory', JSON.stringify(messageHistory));
-            updateMessageHistory();
-            messagesSent++;
-            updateDashboard();
-        }
-
-        function updateDashboard() {
-            const uptime = Math.floor((Date.now() - startTime) / 1000);
-            document.getElementById('statusBar').textContent = `Uptime: ${uptime}s | Messages Sent: ${messagesSent} | Webhooks: ${savedWebhooks.length}`;
-            document.getElementById('webhookCount').textContent = savedWebhooks.length;
-            document.getElementById('messagesSent').textContent = messagesSent;
-            document.getElementById('uptime').textContent = `${uptime}s`;
-            document.getElementById('rateLimit').textContent = `Rate Limit: ${Math.floor(100 - (messagesSent % 100) / 100 * 50)}%`;
+            if (logContent) {
+                const entry = document.createElement('div');
+                entry.textContent = `> [${new Date().toLocaleTimeString()}] ${message}`;
+                logContent.appendChild(entry);
+                logContent.scrollTop = logContent.scrollHeight;
+            }
         }
 
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.querySelectorAll('.nav-bar button').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            document.querySelector(`button[onclick="showPage('${pageId}')"]`).classList.add('active');
-            beep.play();
+            const page = document.getElementById(pageId);
+            if (page) page.classList.add('active');
+            const btn = document.querySelector(`button[onclick="showPage('${pageId}')"]`);
+            if (btn) btn.classList.add('active');
+            if (beep) beep.play();
         }
 
         function toggleCategory(header) {
             const content = header.nextElementSibling;
-            content.classList.toggle('active');
-            beep.play();
+            if (content) content.classList.toggle('active');
+            if (beep) beep.play();
         }
 
         function toggleLogWindow() {
             const logWindow = document.getElementById('logWindow');
-            logWindow.classList.toggle('active');
-            beep.play();
+            if (logWindow) logWindow.classList.toggle('active');
+            if (beep) beep.play();
         }
 
-        // Draggable Log Window
-        const logWindow = document.getElementById('logWindow');
-        const logHeader = logWindow.querySelector('.log-header');
-        let isDragging = false;
-        let currentX, currentY, xOffset = 0, yOffset = 0;
-
-        logHeader.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            currentX = e.clientX - xOffset;
-            currentY = e.clientY - yOffset;
-            document.addEventListener('mousemove', onDrag);
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-                document.removeEventListener('mousemove', onDrag);
-            });
-        });
-
-        function onDrag(e) {
-            if (isDragging) {
-                xOffset = e.clientX - currentX;
-                yOffset = e.clientY - currentY;
-                logWindow.style.right = `${20 - xOffset}px`;
-                logWindow.style.bottom = `${80 - yOffset}px`;
+        function updateLiveStream(message, streamId = 'liveStream') {
+            const stream = document.getElementById(streamId);
+            if (stream) {
+                const entry = document.createElement('div');
+                entry.textContent = `> [${new Date().toLocaleTimeString()}] EmuHook: ${message}`;
+                stream.appendChild(entry);
+                stream.scrollTop = stream.scrollHeight;
+                messageHistory.push({ time: new Date().toLocaleTimeString(), message, sender: 'EmuHook' });
+                localStorage.setItem('messageHistory', JSON.stringify(messageHistory));
+                updateMessageHistory();
+                messagesSent++;
+                updateDashboard();
             }
         }
 
+        function updateDashboard() {
+            const uptime = Math.floor((Date.now() - startTime) / 1000);
+            const statusBar = document.getElementById('statusBar');
+            if (statusBar) {
+                statusBar.textContent = `Uptime: ${uptime}s | Messages: ${messagesSent} | Webhooks: ${savedWebhooks.length}`;
+            }
+            const webhookCount = document.getElementById('webhookCount');
+            if (webhookCount) webhookCount.textContent = savedWebhooks.length;
+            const messagesSentEl = document.getElementById('messagesSent');
+            if (messagesSentEl) messagesSentEl.textContent = messagesSent;
+            const uptimeEl = document.getElementById('uptime');
+            if (uptimeEl) uptimeEl.textContent = `${uptime}s`;
+            const rateLimit = document.getElementById('rateLimit');
+            if (rateLimit) rateLimit.textContent = `Rate Limit: ${Math.floor(100 - (messagesSent % 100) / 100 * 50)}%`;
+        }
+
+        function updateMessageHistory() {
+            const historyDiv = document.getElementById('messageHistory');
+            if (!historyDiv) return;
+            historyDiv.innerHTML = '';
+            messageHistory.forEach(({ time, message, sender }) => {
+                const div = document.createElement('div');
+                div.textContent = `> [${time}] ${sender}: ${message}`;
+                historyDiv.appendChild(div);
+            });
+        }
+
+        function updateDestinationSelects() {
+            const selects = [document.getElementById('destination'), document.getElementById('spamDestination')].filter(Boolean);
+            selects.forEach(select => {
+                select.innerHTML = '<option value="">Select a Webhook</option>';
+                savedWebhooks.forEach(({ name, url }) => {
+                    try {
+                        const decryptedUrl = CryptoJS.AES.decrypt(url, 'secret-key').toString(CryptoJS.enc.Utf8);
+                        if (decryptedUrl && /^https?:\/\//.test(decryptedUrl)) { // Validate URL format
+                            const option = document.createElement('option');
+                            option.value = decryptedUrl;
+                            option.textContent = name;
+                            select.appendChild(option);
+                        } else {
+                            log(`Skipped invalid webhook: ${name} (Invalid URL format)`);
+                        }
+                    } catch (e) {
+                        log(`Skipped webhook: ${name} (Decryption error: ${e.message})`);
+                    }
+                });
+                if (webhookUrl) select.value = webhookUrl;
+            });
+        }
+
         async function validateWebhook() {
-            const url = document.getElementById('webhookUrl').value.trim();
+            const urlInput = document.getElementById('webhookUrl');
+            if (!urlInput) {
+                log('Error: Webhook URL input not found.');
+                return;
+            }
+            const url = urlInput.value.trim();
             if (!url) {
                 log('Error: Webhook URL required.');
                 return;
             }
-            document.getElementById('validateSpinner').classList.add('active');
+            const validateSpinner = document.getElementById('validateSpinner');
+            if (validateSpinner) validateSpinner.classList.add('active');
             try {
-                const response = await fetchWithRetry(url, { method: 'GET' });
-                document.getElementById('validateSpinner').classList.remove('active');
+                const response = await fetch(url, { method: 'GET' });
+                if (validateSpinner) validateSpinner.classList.remove('active');
                 if (response.status === 200) {
                     webhookUrl = url;
-                    log('Webhook validated successfully.');
+                    log('Webhook validated.');
                     fetchWebhookProfile(url);
                     updateDestinationSelects();
                 } else {
                     log('Invalid webhook URL.');
                 }
             } catch (error) {
-                document.getElementById('validateSpinner').classList.remove('active');
+                if (validateSpinner) validateSpinner.classList.remove('active');
                 log('Validation error: ' + error.message);
             }
         }
 
         async function fetchWebhookProfile(url) {
+            const webhookProfile = document.getElementById('webhookProfile');
+            if (!webhookProfile) return;
             try {
-                const response = await fetchWithRetry(url);
+                const response = await fetch(url);
                 const data = await response.json();
                 const avatarUrl = data.avatar ? `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=64` : null;
-                const profileDiv = document.getElementById('webhookProfile');
-                profileDiv.innerHTML = `
+                webhookProfile.innerHTML = `
                     ${avatarUrl ? `<img src="${avatarUrl}" class="webhook-avatar" alt="Webhook Avatar">` : ''}
-                    <p class="neon">Webhook Name: ${data.name || 'N/A'}</p>
-                    <p class="neon">Channel ID: ${data.channel_id || 'N/A'}</p>
-                    <p class="neon">Guild ID: ${data.guild_id || 'N/A'}</p>
+                    <p class="neon">Name: ${data.name || 'N/A'}</p>
+                    <p class="neon">Channel: ${data.channel_id || 'N/A'}</p>
                 `;
             } catch (error) {
                 log('Profile fetch error: ' + error.message);
+                webhookProfile.innerHTML = '<p class="neon">Error fetching profile.</p>';
             }
         }
 
         function saveWebhook() {
-            const url = document.getElementById('webhookUrl').value.trim();
-            const name = document.getElementById('webhookName').value.trim() || `Webhook ${savedWebhooks.length + 1}`;
+            const urlInput = document.getElementById('webhookUrl');
+            const nameInput = document.getElementById('webhookName');
+            if (!urlInput || !nameInput) {
+                log('Error: Input elements not found.');
+                return;
+            }
+            const url = urlInput.value.trim();
+            const name = nameInput.value.trim() || `Webhook ${savedWebhooks.length + 1}`;
             if (!webhookUrl) {
-                log('Error: No valid webhook to save.');
+                log('Error: No valid webhook.');
                 return;
             }
             if (!savedWebhooks.some(w => w.url === webhookUrl)) {
-                const encryptedUrl = CryptoJS.AES.encrypt(webhookUrl, 'secret-key').toString();
-                savedWebhooks.push({ name, url: encryptedUrl });
-                localStorage.setItem('webhooks', JSON.stringify(savedWebhooks));
-                log(`Webhook saved as "${name}".`);
-                updateSavedWebhooks();
-                updateDestinationSelects();
+                try {
+                    const encryptedUrl = CryptoJS.AES.encrypt(webhookUrl, 'secret-key').toString();
+                    savedWebhooks.push({ name, url: encryptedUrl });
+                    localStorage.setItem('webhooks', JSON.stringify(savedWebhooks));
+                    log(`Webhook saved: ${name}`);
+                    updateSavedWebhooks();
+                    updateDestinationSelects();
+                } catch (e) {
+                    log('Error saving webhook: ' + e.message);
+                }
             } else {
-                log('Webhook already exists in storage.');
+                log('Webhook already saved.');
             }
         }
 
         function updateSavedWebhooks() {
             const savedDiv = document.getElementById('savedWebhooks');
+            if (!savedDiv) return;
             savedDiv.innerHTML = '';
             savedWebhooks.forEach(({ name, url }) => {
-                const decryptedUrl = CryptoJS.AES.decrypt(url, 'secret-key').toString(CryptoJS.enc.Utf8);
+                let decryptedUrl;
+                try {
+                    decryptedUrl = CryptoJS.AES.decrypt(url, 'secret-key').toString(CryptoJS.enc.Utf8);
+                    if (!/^https?:\/\//.test(decryptedUrl)) {
+                        log(`Skipped invalid webhook in saved list: ${name} (Invalid URL format)`);
+                        return;
+                    }
+                } catch (e) {
+                    log(`Skipped webhook in saved list: ${name} (Decryption error: ${e.message})`);
+                    return;
+                }
                 const div = document.createElement('div');
                 div.className = 'saved-webhook';
-                div.innerHTML = `<span>${name}: ${decryptedUrl}</span>
-                                 <button onclick="loadWebhook('${decryptedUrl}')" data-tooltip="Load this webhook">Load</button>
-                                 <button onclick="deleteWebhook('${decryptedUrl}')" data-tooltip="Delete this webhook">Delete</button>`;
+                div.innerHTML = `
+                    <span>${name}: ${decryptedUrl}</span>
+                    <div class="flex gap-2">
+                        <button onclick="loadWebhook('${decryptedUrl.replace(/'/g, "\\'")}')" data-tooltip="Load webhook"><i class="fas fa-upload"></i> Load</button>
+                        <button onclick="deleteWebhook('${decryptedUrl.replace(/'/g, "\\'")}')" data-tooltip="Delete webhook"><i class="fas fa-trash"></i> Delete</button>
+                    </div>`;
                 savedDiv.appendChild(div);
             });
         }
 
         function loadWebhook(url) {
             webhookUrl = url;
-            document.getElementById('webhookUrl').value = url;
+            const webhookUrlInput = document.getElementById('webhookUrl');
+            if (webhookUrlInput) webhookUrlInput.value = url;
             log('Webhook loaded: ' + url);
             fetchWebhookProfile(url);
             updateDestinationSelects();
         }
 
         function deleteWebhook(url) {
-            savedWebhooks = savedWebhooks.filter(w => CryptoJS.AES.decrypt(w.url, 'secret-key').toString(CryptoJS.enc.Utf8) !== url);
+            savedWebhooks = savedWebhooks.filter(w => {
+                try {
+                    return CryptoJS.AES.decrypt(w.url, 'secret-key').toString(CryptoJS.enc.Utf8) !== url;
+                } catch (e) {
+                    log('Error decrypting webhook for deletion: ' + e.message);
+                    return false;
+                }
+            });
             localStorage.setItem('webhooks', JSON.stringify(savedWebhooks));
-            log('Webhook deleted: ' + url);
+            log('Webhook deleted.');
             updateSavedWebhooks();
             updateDestinationSelects();
         }
@@ -830,104 +793,85 @@
         function clearSavedWebhooks() {
             savedWebhooks = [];
             localStorage.setItem('webhooks', JSON.stringify(savedWebhooks));
-            log('All saved webhooks cleared.');
+            log('Webhooks cleared.');
             updateSavedWebhooks();
             updateDestinationSelects();
         }
 
-        function updateMessageHistory() {
-            const historyDiv = document.getElementById('messageHistory');
-            historyDiv.innerHTML = '';
-            messageHistory.forEach(({ time, message, sender }) => {
-                const div = document.createElement('div');
-                div.textContent = `> [${time}] ${sender}: ${message}`;
-                div.style.animation = 'fadeIn 0.5s';
-                historyDiv.appendChild(div);
-            });
-        }
-
-        function updateDestinationSelects() {
-            const selects = [document.getElementById('destination'), document.getElementById('spamDestination')];
-            selects.forEach(select => {
-                select.innerHTML = '<option value="">Select Webhook</option>';
-                savedWebhooks.forEach(({ name, url }) => {
-                    const decryptedUrl = CryptoJS.AES.decrypt(url, 'secret-key').toString(CryptoJS.enc.Utf8);
-                    const option = document.createElement('option');
-                    option.value = decryptedUrl;
-                    option.textContent = name;
-                    select.appendChild(option);
-                });
-                if (webhookUrl) {
-                    select.value = webhookUrl;
-                }
-            });
-        }
-
         async function sendMessage() {
-            const destination = document.getElementById('destination').value;
+            const destinationSelect = document.getElementById('destination');
+            if (!destinationSelect || !messageEditor) {
+                log('Error: Required elements not found.');
+                return;
+            }
+            const destination = destinationSelect.value;
             const message = messageEditor.root.innerHTML;
-            const predefined = document.getElementById('predefinedMessages').value;
-            const delay = parseInt(document.getElementById('sendDelay').value) || 0;
-            const embedTitle = document.getElementById('embedTitle').value.trim();
-            const embedDescription = document.getElementById('embedDescription').value.trim();
-            const embedColor = document.getElementById('embedColor').value;
-            const attachment = document.getElementById('attachment').files[0];
+            const predefined = document.getElementById('predefinedMessages')?.value;
+            const delay = parseInt(document.getElementById('sendDelay')?.value) || 0;
+            const embedTitle = document.getElementById('embedTitle')?.value.trim();
+            const embedDescription = document.getElementById('embedDescription')?.value.trim();
+            const embedColor = document.getElementById('embedColor')?.value;
+            const attachment = document.getElementById('attachment')?.files[0];
             if (predefined) messageEditor.root.innerHTML = predefined;
             if (!destination) {
                 log('Error: Select a webhook.');
                 return;
             }
             if (!message && !embedTitle && !embedDescription && !attachment) {
-                log('Error: Message, embed, or attachment required.');
+                log('Error: Provide message or embed.');
                 return;
             }
-            document.getElementById('sendSpinner').classList.add('active');
+            const sendSpinner = document.getElementById('sendSpinner');
+            if (sendSpinner) sendSpinner.classList.add('active');
             try {
                 const formData = new FormData();
                 formData.append('payload_json', JSON.stringify({
                     content: message,
-                    username: user ? user.username : 'EmuHook',
+                    username: 'EmuHook',
                     embeds: embedTitle || embedDescription ? [{
                         title: embedTitle || undefined,
                         description: embedDescription || undefined,
-                        color: parseInt(embedColor.replace('#', ''), 16)
+                        color: parseInt(embedColor.replace('#', ''), 16) || 0
                     }] : []
                 }));
                 if (attachment) formData.append('file', attachment);
                 setTimeout(async () => {
-                    const response = await fetchWithRetry(destination, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    document.getElementById('sendSpinner').classList.remove('active');
-                    if (response.status === 204) {
-                        log('Message transmitted successfully.');
-                        updateLiveStream(message || (embedTitle + ': ' + embedDescription));
-                    } else {
-                        log('Transmission failed.');
+                    try {
+                        const response = await fetch(destination, { method: 'POST', body: formData });
+                        if (sendSpinner) sendSpinner.classList.remove('active');
+                        if (response.status === 204) {
+                            log('Message sent.');
+                            updateLiveStream(message || (embedTitle + ': ' + embedDescription));
+                        } else {
+                            log('Failed to send message: HTTP ' + response.status);
+                        }
+                    } catch (error) {
+                        if (sendSpinner) sendSpinner.classList.remove('active');
+                        log('Send error: ' + error.message);
                     }
                 }, delay * 1000);
             } catch (error) {
-                document.getElementById('sendSpinner').classList.remove('active');
-                log('Transmission error: ' + error.message);
+                if (sendSpinner) sendSpinner.classList.remove('active');
+                log('Send error: ' + error.message);
             }
         }
 
         async function spamMessages() {
-            const destination = document.getElementById('spamDestination').value;
+            const destinationSelect = document.getElementById('spamDestination');
+            if (!destinationSelect || !spamMessageEditor) {
+                log('Error: Required elements not found.');
+                return;
+            }
+            const destination = destinationSelect.value;
             let message = spamMessageEditor.root.innerHTML;
-            const predefined = document.getElementById('spamPredefinedMessages').value;
-            const count = parseInt(document.getElementById('spamCount').value);
-            const delay = parseFloat(document.getElementById('spamDelay').value);
-            const batchSize = parseInt(document.getElementById('batchSize').value) || 1;
-            const randomize = document.getElementById('randomizeMessages').checked;
+            const predefined = document.getElementById('spamPredefinedMessages')?.value;
+            const count = parseInt(document.getElementById('spamCount')?.value);
+            const delay = parseFloat(document.getElementById('spamDelay')?.value);
+            const randomize = document.getElementById('randomizeMessages')?.checked;
             const predefinedMessages = [
                 '> [EmuHook] Initiating cyber sequence...',
                 '> [ALERT] Mainframe breach detected!',
-                '> [SYSTEM] Override protocols engaged!',
-                '> [TEST] Probing network defenses...',
-                '> [HACK] Accessing secure channels...',
-                '> [SHADOW] Infiltrating data streams...'
+                '> [SYSTEM] Override protocols engaged!'
             ];
 
             if (!destination) {
@@ -935,195 +879,236 @@
                 return;
             }
             if (!message && !predefined && !randomize) {
-                log('Error: Message or predefined required.');
+                log('Error: Provide a message.');
                 return;
             }
-            if (isNaN(count) || count < 1 || isNaN(delay) || delay < 0 || isNaN(batchSize) || batchSize < 1) {
-                log('Error: Invalid count, delay, or batch size.');
+            if (isNaN(count) || count < 1 || isNaN(delay) || delay < 0) {
+                log('Error: Invalid count or delay.');
                 return;
             }
 
             isSpamming = true;
-            log(`Initiating ${count} transmissions in batches of ${batchSize} with ${delay}s delay...`);
-            document.getElementById('spamSpinner').classList.add('active');
+            log(`Starting ${count} messages with ${delay}s delay...`);
+            const spamSpinner = document.getElementById('spamSpinner');
+            if (spamSpinner) spamSpinner.classList.add('active');
 
-            for (let i = 1; i <= count && isSpamming; i += batchSize) {
-                const batchCount = Math.min(batchSize, count - i + 1);
-                for (let j = 0; j < batchCount && isSpamming; j++) {
-                    const msg = randomize ? predefinedMessages[Math.floor(Math.random() * predefinedMessages.length)] : (predefined || message);
-                    try {
-                        const response = await fetchWithRetry(destination, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ content: msg, username: user ? user.username : 'EmuHook' })
-                        });
-                        if (response.status === 204) {
-                            log(`Transmitted message ${i + j}/${count}`);
-                            updateLiveStream(msg, 'liveStreamSpam');
-                            document.getElementById('rateLimitStatus').textContent = `Rate Limit: ${Math.floor(100 - (i / count) * 50)}%`;
-                        } else {
-                            log(`Failed to transmit message ${i + j}.`);
-                            isSpamming = false;
-                        }
-                    } catch (error) {
-                        log('Transmission error: ' + error.message);
+            for (let i = 1; i <= count && isSpamming; i++) {
+                const msg = randomize ? predefinedMessages[Math.floor(Math.random() * predefinedMessages.length)] : (predefined || message);
+                try {
+                    const response = await fetch(destination, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content: msg, username: 'EmuHook' })
+                    });
+                    if (response.status === 204) {
+                        log(`Sent message ${i}/${count}`);
+                        updateLiveStream(msg, 'liveStreamSpam');
+                        const rateLimitStatus = document.getElementById('rateLimitStatus');
+                        if (rateLimitStatus) rateLimitStatus.textContent = `Rate Limit: ${Math.floor(100 - (i / count) * 50)}%`;
+                    } else {
+                        log(`Failed to send message ${i}: HTTP ${response.status}`);
                         isSpamming = false;
                     }
+                } catch (error) {
+                    log('Send error: ' + error.message);
+                    isSpamming = false;
                 }
-                if (i + batchSize <= count && isSpamming) {
+                if (i < count && isSpamming) {
                     await new Promise(resolve => setTimeout(resolve, delay * 1000));
                 }
             }
-            document.getElementById('spamSpinner').classList.remove('active');
-            if (isSpamming) {
-                log('Spam sequence completed.');
-            }
+            if (spamSpinner) spamSpinner.classList.remove('active');
+            if (isSpamming) log('Spam sequence completed.');
             isSpamming = false;
         }
 
         function cancelSpam() {
             isSpamming = false;
-            document.getElementById('spamSpinner').classList.remove('active');
-            log('Spam sequence terminated.');
+            const spamSpinner = document.getElementById('spamSpinner');
+            if (spamSpinner) spamSpinner.classList.remove('active');
+            log('Spam sequence canceled.');
         }
 
-        async function fetchWithRetry(url, options, retries = 3) {
-            for (let i = 0; i < retries; i++) {
-                try {
-                    const response = await fetch(url, options);
-                    return response;
-                } catch (error) {
-                    if (i === retries - 1) throw error;
-                    await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-                }
-            }
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            // Custom Cursor and Trail
+            const cursor = document.getElementById('cursor');
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = `${e.clientX}px`;
+                cursor.style.top = `${e.clientY}px`;
+                const trail = document.createElement('div');
+                trail.className = 'cursor-trail';
+                trail.style.left = `${e.clientX - 5}px`;
+                trail.style.top = `${e.clientY - 5}px`;
+                document.body.appendChild(trail);
+                setTimeout(() => trail.remove(), 500);
+            });
 
-        // Discord OAuth2
-        function loginWithDiscord() {
-            const clientId = 'YOUR_CLIENT_ID'; // Replace with your Discord app client ID
-            const redirectUri = encodeURIComponent(window.location.origin);
-            const scope = 'identify';
-            window.location.href = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}`;
-        }
-
-        async function handleOAuthCallback() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get('code');
-            if (code) {
-                try {
-                    const response = await fetchWithRetry('https://discord.com/api/oauth2/token', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: new URLSearchParams({
-                            client_id: 'YOUR_CLIENT_ID', // Replace with your client ID
-                            client_secret: 'YOUR_CLIENT_SECRET', // Replace with your client secret
-                            grant_type: 'authorization_code',
-                            code,
-                            redirect_uri: window.location.origin
-                        })
-                    });
-                    const tokenData = await response.json();
-                    if (tokenData.access_token) {
-                        const userResponse = await fetchWithRetry('https://discord.com/api/users/@me', {
-                            headers: { Authorization: `Bearer ${tokenData.access_token}` }
-                        });
-                        user = await userResponse.json();
-                        document.getElementById('userInfo').textContent = `Operative: ${user.username}#${user.discriminator}`;
-                        log(`Authenticated as ${user.username}`);
-                        history.replaceState(null, '', window.location.pathname);
+            // Particles.js
+            if (typeof particlesJS !== 'undefined') {
+                particlesJS('particles-js', {
+                    particles: {
+                        number: { value: 150, density: { enable: true, value_area: 800 } },
+                        color: { value: '#ff1a1a' },
+                        shape: { type: 'circle' },
+                        opacity: { value: 0.6, random: true },
+                        size: { value: 4, random: true },
+                        line_linked: { enable: true, distance: 80, color: '#ff1a1a', opacity: 0.4, width: 1 },
+                        move: { enable: true, speed: 4, direction: 'none', random: true }
+                    },
+                    interactivity: {
+                        detect_on: 'canvas',
+                        events: { onhover: { enable: true, mode: 'repulse' }, onclick: { enable: true, mode: 'push' } },
+                        modes: { repulse: { distance: 100 }, push: { particles_nb: 5 } }
                     }
-                } catch (error) {
-                    log('OAuth2 error: ' + error.message);
+                });
+            } else {
+                log('Error: Particles.js not loaded.');
+            }
+
+            // Matrix Rain
+            const canvas = document.getElementById('matrix');
+            const ctx = canvas.getContext('2d');
+            canvas.height = window.innerHeight;
+            canvas.width = window.innerWidth;
+            const chars = '0101EMUH00Kマトリックス';
+            const fontSize = 14;
+            const columns = canvas.width / fontSize;
+            const drops = Array(Math.floor(columns)).fill(0);
+            function drawMatrix() {
+                ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#ff1a1a';
+                ctx.font = fontSize + 'px monospace';
+                for (let i = 0; i < drops.length; i++) {
+                    const text = chars.charAt(Math.random() * chars.length);
+                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                    drops[i]++;
                 }
             }
-        }
+            setInterval(drawMatrix, 33);
 
-        function logout() {
-            user = null;
-            document.getElementById('userInfo').textContent = 'Not Logged In';
-            log('Session terminated.');
-        }
+            // Sound Effects
+            beep = typeof Howl !== 'undefined' ? new Howl({ src: ['https://cdn.pixabay.com/audio/2022/03/10/audio_6b1c7f6b1f.mp3'], volume: 0.3 }) : { play: () => log('Error: Sound not available.') };
 
-        // Settings
-        function applySettings() {
-            const neonIntensity = document.getElementById('neonIntensity').value;
-            const animationSpeed = document.getElementById('animationSpeed').value;
-            const themeColor = document.getElementById('themeColor').value;
-            const darkMode = document.getElementById('darkMode').checked;
-            document.documentElement.style.setProperty('--neon-intensity', neonIntensity);
-            document.documentElement.style.setProperty('--animation-speed', animationSpeed);
-            document.documentElement.style.setProperty('--primary-color', themeColor);
-            document.body.style.background = darkMode ? '#0a0a0a' : '#f0f0f0';
-            document.documentElement.style.setProperty('--secondary-color', darkMode ? '#0a0a0a' : '#f0f0f0');
-            material.color.set(themeColor);
-            log('System settings updated.');
-        }
+            // Quill Editors
+            if (typeof Quill !== 'undefined') {
+                messageEditor = new Quill('#messageEditor', {
+                    theme: 'snow',
+                    modules: { toolbar: [['bold', 'italic']] }
+                });
+                spamMessageEditor = new Quill('#spamMessageEditor', {
+                    theme: 'snow',
+                    modules: { toolbar: [['bold', 'italic']] }
+                });
+            } else {
+                log('Error: Quill editor not loaded.');
+            }
 
-        // Diagnostics
-        function updateDiagnostics() {
-            const diagnostics = document.getElementById('diagnostics');
-            diagnostics.innerHTML = `
-                <p class="neon">System Status: Online</p>
-                <p class="neon">CPU Load: ${Math.floor(Math.random() * 50)}%</p>
-                <p class="neon">Memory Usage: ${Math.floor(Math.random() * 80)}%</p>
-                <p class="neon">Network Latency: ${Math.floor(Math.random() * 100)}ms</p>
-            `;
-        }
+            // Load and Clean Saved Webhooks
+            try {
+                const storedWebhooks = JSON.parse(localStorage.getItem('webhooks') || '[]');
+                savedWebhooks = storedWebhooks.filter(w => {
+                    try {
+                        const decrypted = CryptoJS.AES.decrypt(w.url, 'secret-key').toString(CryptoJS.enc.Utf8);
+                        if (decrypted && /^https?:\/\//.test(decrypted)) {
+                            return true;
+                        } else {
+                            log(`Removed invalid webhook: ${w.name} (Invalid URL format)`);
+                            return false;
+                        }
+                    } catch (e) {
+                        log(`Removed webhook: ${w.name} (Decryption error: ${e.message})`);
+                        return false;
+                    }
+                }).map(w => ({
+                    name: w.name,
+                    url: w.url // Keep encrypted URL
+                }));
+                localStorage.setItem('webhooks', JSON.stringify(savedWebhooks)); // Update localStorage with cleaned data
+            } catch (e) {
+                log('Error loading saved webhooks: ' + e.message);
+                savedWebhooks = [];
+                localStorage.setItem('webhooks', JSON.stringify(savedWebhooks));
+            }
 
-        // Terminal
-        const terminal = document.getElementById('terminal');
-        terminal.contentEditable = true;
-        terminal.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const command = terminal.textContent.trim();
-                terminal.textContent = '';
-                log(`Executing command: ${command}`);
-                if (command === 'clear') {
-                    document.getElementById('logContent').innerHTML = '';
-                } else if (command === 'status') {
-                    updateDiagnostics();
-                } else {
-                    log('Unknown command. Try "clear" or "status".');
+            // Load Message History
+            try {
+                messageHistory = JSON.parse(localStorage.getItem('messageHistory') || '[]');
+            } catch (e) {
+                log('Error loading message history: ' + e.message);
+            }
+
+            // Draggable Log Window
+            const logWindow = document.getElementById('logWindow');
+            const logHeader = logWindow?.querySelector('.log-header');
+            let isDragging = false;
+            let currentX, currentY, xOffset = 0, yOffset = 0;
+            if (logHeader) {
+                logHeader.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    currentX = e.clientX - xOffset;
+                    currentY = e.clientY - yOffset;
+                    document.addEventListener('mousemove', onDrag);
+                    document.addEventListener('mouseup', () => {
+                        isDragging = false;
+                        document.removeEventListener('mousemove', onDrag);
+                    });
+                });
+            }
+            function onDrag(e) {
+                if (isDragging) {
+                    xOffset = e.clientX - currentX;
+                    yOffset = e.clientY - currentY;
+                    logWindow.style.right = `${20 - xOffset}px`;
+                    logWindow.style.bottom = `${70 - yOffset}px`;
                 }
             }
-        });
 
-        // Keyboard Shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey) {
-                switch (e.key) {
-                    case '0': showPage('dashboard'); break;
-                    case '1': showPage('home'); break;
-                    case '2': showPage('send'); break;
-                    case '3': showPage('spam'); break;
-                    case '4': showPage('saved'); break;
-                    case '5': showPage('history'); break;
-                    case '6': showPage('settings'); break;
+            // Keyboard Shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey) {
+                    switch (e.key) {
+                        case '0': showPage('dashboard'); break;
+                        case '1': showPage('home'); break;
+                        case '2': showPage('send'); break;
+                        case '3': showPage('spam'); break;
+                        case '4': showPage('saved'); break;
+                        case '5': showPage('history'); break;
+                        case '6': showPage('settings'); break;
+                        case '7': showPage('help'); break;
+                    }
                 }
-            }
-        });
+            });
 
-        // Initialize
-        updateSavedWebhooks();
-        updateDestinationSelects();
-        updateMessageHistory();
-        updateDiagnostics();
-        updateDashboard();
-        handleOAuthCallback();
-        document.getElementById('predefinedMessages').addEventListener('change', () => {
-            messageEditor.root.innerHTML = document.getElementById('predefinedMessages').value;
+            // Terminal Commands
+            const terminal = document.getElementById('terminal');
+            if (terminal) {
+                terminal.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const command = e.target.textContent.trim();
+                        e.target.textContent = '';
+                        if (command === 'clear') {
+                            messageHistory = [];
+                            localStorage.setItem('messageHistory', JSON.stringify(messageHistory));
+                            updateMessageHistory();
+                            log('History cleared.');
+                        } else if (command === 'status') {
+                            log(`System Status: ${savedWebhooks.length} webhooks, ${messagesSent} messages sent.`);
+                        } else {
+                            log('Unknown command. Try "clear" or "status".');
+                        }
+                    }
+                });
+            }
+
+            // Initialize
+            startTime = Date.now();
+            updateSavedWebhooks();
+            updateMessageHistory();
+            updateDestinationSelects();
+            setInterval(updateDashboard, 1000);
+            log('System initialized.');
         });
-        document.getElementById('spamPredefinedMessages').addEventListener('change', () => {
-            spamMessageEditor.root.innerHTML = document.getElementById('spamPredefinedMessages').value;
-        });
-        document.getElementById('neonIntensity').addEventListener('input', applySettings);
-        document.getElementById('animationSpeed').addEventListener('input', applySettings);
-        document.getElementById('themeColor').addEventListener('input', applySettings);
-        document.getElementById('darkMode').addEventListener('change', applySettings);
-        setInterval(updateDiagnostics, 5000);
-        setInterval(updateDashboard, 1000);
     </script>
-</body>
-</html>
