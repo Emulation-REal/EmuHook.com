@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EmuHook: Cyber Terminal v4.0</title>
-    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAKVJREFUWEftl0sOwCAMQ+0E3v8q3oF7YfU6e2gEy6N48mTqkrBAIQiCIAiCIAiCIAiCIAiCIAiCIBj8f3u8Ay2g0uJ7H0k1s9x6a6w7b2m0nM2nNdpMZ9P5eLqYzafz8Xgxm0/n4/FiNp/Op/PpfDyfzufT+XQ+nU/n0/l0Pp1P59P5dD6dT+fT+XQ+nU/n0/l0Pp1P59P5dD6dT2fT+XQ+nc8vD6S6xQAAAABJRU5ErkJggg==">
+    <title>EmuHook: Cyber Terminal v5.1</title>
     <style>
         * {
             margin: 0;
@@ -16,7 +15,17 @@
             background: #0a0a0a;
             color: #ff1a1a;
             overflow-x: hidden;
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M10 0v8m0 4v8M0 10h8m4 0h8" stroke="%23ff1a1a" stroke-width="2"/></svg>'), auto;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="%230a0a0a" stroke="%23ff4d4d" stroke-width="2"/><path d="M12 6v12M6 12h12" stroke="%23ff4d4d" stroke-width="2"/></svg>'), auto;
+        }
+        .cursor-trail {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background: #ff4d4d;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.6;
         }
         #particles-js {
             position: fixed;
@@ -24,20 +33,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -2;
-        }
-        .matrix-rain {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -3;
-            pointer-events: none;
-            opacity: 0.2;
-        }
-        .matrix-rain canvas {
-            display: block;
+            z-index: -1;
         }
         .hologram {
             position: fixed;
@@ -45,26 +41,29 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
+            z-index: -2;
             background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 26, 26, 0.1) 2px, rgba(255, 26, 26, 0.1) 4px);
-            animation: scanlines 10s linear infinite;
         }
         .container {
-            max-width: 1000px;
-            margin: 60px auto 20px;
-            padding: 20px;
-            background: rgba(10, 10, 10, 0.95);
+            max-width: 900px;
+            margin: 50px auto 20px;
+            padding: 15px;
             border: 2px solid #ff1a1a;
-            box-shadow: 0 0 40px rgba(255, 26, 26, 0.8);
-            border-radius: 10px;
-            position: relative;
+            box-shadow: 0 0 20px rgba(255, 26, 26, 0.3);
+            border-radius: 8px;
         }
         .logo {
-            text-align: center;
-            font-size: 3.5em;
-            text-shadow: 0 0 15px #ff1a1a, 0 0 30px #ff1a1a;
+            display: flex;
+            align-items: center;
+            font-size: 1.4em;
+            text-shadow: 0 0 10px #ff1a1a;
             animation: neon-pulse 1.5s infinite;
-            margin-bottom: 20px;
+            margin: 0 8px;
+        }
+        .logo::before {
+            content: '🖥️';
+            margin-right: 8px;
+            font-size: 1.2em;
         }
         .nav-bar {
             position: fixed;
@@ -73,84 +72,70 @@
             width: 100%;
             background: rgba(10, 10, 10, 0.9);
             border-bottom: 2px solid #ff1a1a;
-            box-shadow: 0 0 20px rgba(255, 26, 26, 0.5);
             z-index: 10;
             display: flex;
-            justify-content: center;
-            gap: 10px;
-            padding: 10px;
+            align-items: center;
+            padding: 5px;
+            height: 40px;
+        }
+        .nav-bar .logo {
+            margin-right: auto;
         }
         .nav-bar button {
             background: none;
-            border: 1px solid #ff1a1a;
+            border: 2px solid #ff1a1a;
             color: #ff1a1a;
-            padding: 8px 16px;
+            padding: 5px 10px;
             cursor: pointer;
             transition: all 0.3s;
-            text-shadow: 0 0 5px #ff1a1a;
-            position: relative;
-            overflow: hidden;
             border-radius: 5px;
-            font-size: 0.9em;
+            font-size: 0.8em;
+            margin: 0 3px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
         .nav-bar button:hover, .nav-bar button.active {
             background: #ff1a1a;
             color: #0a0a0a;
-            box-shadow: 0 0 20px #ff1a1a;
-            animation: glitch 0.3s;
-        }
-        .nav-bar button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 26, 26, 0.5), transparent);
-            transition: 0.5s;
-        }
-        .nav-bar button:hover::before {
-            left: 100%;
+            box-shadow: 0 0 10px #ff1a1a;
         }
         .status-bar {
             position: absolute;
             top: 10px;
             left: 10px;
             color: #ff1a1a;
-            font-size: 0.8em;
-            text-shadow: 0 0 5px #ff1a1a;
+            font-size: 0.7em;
         }
         .user-info {
             position: absolute;
             top: 10px;
             right: 10px;
             color: #ff1a1a;
-            text-shadow: 0 0 5px #ff1a1a;
+            font-size: 0.7em;
         }
         .page {
             display: none;
-            transition: opacity 0.3s;
             opacity: 0;
+            transition: opacity 0.3s;
         }
         .page.active {
             display: block;
             opacity: 1;
         }
         .category {
-            margin: 15px 0;
+            margin: 10px 0;
             border: 1px solid #ff1a1a;
             border-radius: 5px;
             overflow: hidden;
-            animation: fadeIn 0.5s;
         }
         .category-header {
-            background: #1a1a1a;
-            padding: 10px;
+            background: rgba(26, 26, 26, 0.5);
+            padding: 8px;
             cursor: pointer;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            text-shadow: 0 0 5px #ff1a1a;
+            gap: 8px;
             transition: all 0.3s;
         }
         .category-header:hover {
@@ -164,97 +149,98 @@
         .category-content.active {
             display: block;
         }
-        input, select {
+        input, select, input[type="file"] {
             background: transparent;
             border: none;
             border-bottom: 2px solid #ff1a1a;
             color: #ff1a1a;
-            padding: 10px 5px;
+            padding: 6px 5px;
             margin: 5px 0;
             width: 100%;
             font-family: 'Courier New', Courier, monospace;
             transition: all 0.3s;
-            position: relative;
         }
-        input:focus, select:focus {
+        input:focus, select:focus, input[type="file"]:focus {
             border-bottom-color: #ff4d4d;
-            box-shadow: 0 2px 10px rgba(255, 26, 26, 0.5);
+            box-shadow: 0 2px 8px rgba(255, 26, 26, 0.5);
             outline: none;
         }
         select {
-            appearance: none;
-            background: #1a1a1a url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path d="M2 4l4 4 4-4" stroke="%23ff1a1a" stroke-width="2" fill="none"/></svg>') no-repeat right 10px center;
-            padding-right: 30px;
+            background: rgba(26, 26, 26, 0.5) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><path d="M2 3l3 3 3-3" stroke="%23ff1a1a" stroke-width="2" fill="none"/></svg>') no-repeat right 10px center;
+            padding-right: 25px;
         }
         button {
             background: none;
             border: 2px solid #ff1a1a;
             color: #ff1a1a;
-            padding: 10px 20px;
+            padding: 6px 12px;
             cursor: pointer;
             transition: all 0.3s;
-            text-shadow: 0 0 5px #ff1a1a;
-            position: relative;
-            overflow: hidden;
             border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
         button:hover {
             background: #ff1a1a;
             color: #0a0a0a;
-            box-shadow: 0 0 20px #ff1a1a;
-            animation: glitch 0.3s;
+            box-shadow: 0 0 10px #ff1a1a;
+        }
+        .editor-toolbar {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .editor-toolbar button {
+            padding: 4px 6px;
+            font-size: 0.7em;
         }
         .spinner {
             display: none;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #ff1a1a;
-            border-top: 3px solid transparent;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ff1a1a;
+            border-top: 2px solid transparent;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 10px auto;
+            margin: 8px auto;
         }
         .spinner.active {
             display: block;
         }
-        #output, #liveStream, #liveStreamSpam, #messageHistory {
-            background: #0a0a0a;
+        #liveStream, #liveStreamSpam, #messageHistory, #logContent {
+            background: rgba(10, 10, 10, 0.8);
             border: 1px solid #ff1a1a;
-            padding: 10px;
-            height: 150px;
+            padding: 8px;
+            height: 120px;
             overflow-y: auto;
-            margin-top: 10px;
+            margin-top: 8px;
             border-radius: 5px;
             white-space: pre-wrap;
-            text-shadow: 0 0 5px #ff1a1a;
         }
-        #output::-webkit-scrollbar, #liveStream::-webkit-scrollbar, #liveStreamSpam::-webkit-scrollbar, #messageHistory::-webkit-scrollbar {
-            width: 8px;
+        #liveStream::-webkit-scrollbar, #liveStreamSpam::-webkit-scrollbar, #messageHistory::-webkit-scrollbar, #logContent::-webkit-scrollbar {
+            width: 6px;
         }
-        #output::-webkit-scrollbar-track, #liveStream::-webkit-scrollbar-track, #liveStreamSpam::-webkit-scrollbar-track, #messageHistory::-webkit-scrollbar-track {
-            background: #1a1a1a;
-        }
-        #output::-webkit-scrollbar-thumb, #liveStream::-webkit-scrollbar-thumb, #liveStreamSpam::-webkit-scrollbar-thumb, #messageHistory::-webkit-scrollbar-thumb {
+        #liveStream::-webkit-scrollbar-thumb, #liveStreamSpam::-webkit-scrollbar-thumb, #messageHistory::-webkit-scrollbar-thumb, #logContent::-webkit-scrollbar-thumb {
             background: #ff1a1a;
-            border-radius: 4px;
+            border-radius: 3px;
         }
         .saved-webhook {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px;
+            padding: 8px;
             border-bottom: 1px solid #ff1a1a;
-            animation: fadeIn 0.5s;
         }
         .webhook-avatar {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             border: 2px solid #ff1a1a;
-            margin: 10px;
+            margin: 8px;
         }
         .neon {
-            text-shadow: 0 0 5px #ff1a1a, 0 0 10px #ff1a1a, 0 0 20px #ff1a1a;
+            text-shadow: 0 0 5px #ff1a1a;
         }
         .tooltip {
             position: relative;
@@ -265,216 +251,357 @@
             bottom: 100%;
             left: 50%;
             transform: translateX(-50%);
-            background: #1a1a1a;
+            background: rgba(26, 26, 26, 0.9);
             color: #ff1a1a;
-            padding: 5px 10px;
+            padding: 4px 8px;
             border: 1px solid #ff1a1a;
-            border-radius: 5px;
+            border-radius: 4px;
             white-space: nowrap;
             z-index: 10;
-            text-shadow: 0 0 5px #ff1a1a;
-            animation: fadeIn 0.3s;
         }
-        @keyframes glitch {
-            2%, 64% {
-                transform: translate(4px, 0) skew(10deg);
-            }
-            4%, 60% {
-                transform: translate(-4px, 0) skew(-10deg);
-            }
-            62% {
-                transform: translate(0, 0) skew(0deg);
-            }
+        .log-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(10, 10, 10, 0.9);
+            border: 2px solid #ff1a1a;
+            color: #ff1a1a;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            animation: float 2s ease-in-out infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .log-toggle:hover {
+            background: #ff1a1a;
+            color: #0a0a0a;
+            box-shadow: 0 0 15px #ff1a1a;
+        }
+        .log-window {
+            position: fixed;
+            bottom: 70px;
+            right: 20px;
+            width: 350px;
+            height: 150px;
+            background: rgba(10, 10, 10, 0.9);
+            border: 2px solid #ff1a1a;
+            border-radius: 5px;
+            display: none;
+            z-index: 20;
+        }
+        .log-window.active {
+            display: block;
+        }
+        .log-header {
+            background: rgba(26, 26, 26, 0.5);
+            padding: 5px 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .log-close {
+            background: none;
+            border: none;
+            color: #ff1a1a;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        .log-close:hover {
+            color: #0a0a0a;
+            background: #ff1a1a;
+        }
+        .theme-dark-red { --main-color: #ff1a1a; --glow-color: rgba(255, 26, 26, 0.5); }
+        .theme-neon-green { --main-color: #00ff00; --glow-color: rgba(0, 255, 0, 0.5); }
+        .theme-cyber-blue { --main-color: #00b7eb; --glow-color: rgba(0, 183, 235, 0.5); }
+        :root {
+            --main-color: #ff1a1a;
+            --glow-color: rgba(255, 26, 26, 0.5);
+        }
+        .container, button, input, select, .nav-bar, .log-toggle, .log-window {
+            border-color: var(--main-color);
+            color: var(--main-color);
+        }
+        button:hover, .nav-bar button:hover, .nav-bar button.active, .log-toggle:hover {
+            background: var(--main-color);
+            box-shadow: 0 0 10px var(--glow-color);
+        }
+        input:focus, select:focus {
+            border-bottom-color: var(--main-color);
+            box-shadow: 0 2px 8px var(--glow-color);
         }
         @keyframes neon-pulse {
-            0%, 100% {
-                text-shadow: 0 0 5px #ff1a1a, 0 0 10px #ff1a1a, 0 0 20px #ff1a1a;
-            }
-            50% {
-                text-shadow: 0 0 15px #ff1a1a, 0 0 30px #ff1a1a, 0 0 50px #ff1a1a;
-            }
-        }
-        @keyframes scanlines {
-            0% { background-position: 0 0; }
-            100% { background-position: 0 100px; }
+            0%, 100% { text-shadow: 0 0 5px var(--main-color), 0 0 10px var(--main-color); }
+            50% { text-shadow: 0 0 10px var(--main-color), 0 0 20px var(--main-color); }
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
         }
     </style>
 </head>
 <body>
     <div id="particles-js"></div>
-    <div class="matrix-rain"><canvas id="matrix"></canvas></div>
     <div class="hologram"></div>
     <div class="nav-bar">
-        <button onclick="showPage('home')" class="active" data-tooltip="Ctrl+1: Webhook Control">Home</button>
-        <button onclick="showPage('send')" data-tooltip="Ctrl+2: Send Messages">Send</button>
-        <button onclick="showPage('spam')" data-tooltip="Ctrl+3: Spam (Test Only)">Spam</button>
-        <button onclick="showPage('saved')" data-tooltip="Ctrl+4: Saved Webhooks">Saved</button>
-        <button onclick="showPage('history')" data-tooltip="Ctrl+5: Message History">History</button>
-        <button onclick="showPage('settings')" data-tooltip="Ctrl+6: System Config">Settings</button>
+        <div class="logo">EmuHook v5.1</div>
+        <button onclick="showPage('home')" class="active" data-tooltip="Ctrl+1: Webhook Control">🖥️ Home</button>
+        <button onclick="showPage('send')" data-tooltip="Ctrl+2: Send Messages">📤 Send</button>
+        <button onclick="showPage('spam')" data-tooltip="Ctrl+3: Spam (Test Only)">⚡ Spam</button>
+        <button onclick="showPage('saved')" data-tooltip="Ctrl+4: Saved Webhooks">💾 Saved</button>
+        <button onclick="showPage('history')" data-tooltip="Ctrl+5: Message History">📜 History</button>
+        <button onclick="showPage('settings')" data-tooltip="Ctrl+6: System Config">⚙️ Settings</button>
     </div>
     <div class="container">
-        <h1 class="logo">EmuHook v4.0</h1>
         <div class="status-bar" id="statusBar"></div>
         <div class="user-info" id="userInfo">Not Logged In</div>
         <div id="home" class="page active">
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">Webhook Input</div>
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h12M8 2v12" stroke="#ff1a1a" stroke-width="2"/></svg> Webhook Input
+                </div>
                 <div class="category-content active">
-                    <input type="text" id="webhookName" placeholder="Webhook Name (Optional)" data-tooltip="Assign a codename to your webhook">
-                    <input type="text" id="webhookUrl" placeholder="Enter Discord Webhook URL" data-tooltip="Insert webhook URL for validation">
-                    <button onclick="validateWebhook()" data-tooltip="Verify webhook integrity">Validate Webhook</button>
-                    <button onclick="saveWebhook()" data-tooltip="Store webhook in system">Save Webhook</button>
-                    <button onclick="loginWithDiscord()" data-tooltip="Authenticate via Discord network">Login with Discord</button>
+                    <input type="text" id="webhookName" placeholder="Webhook Name (Optional)" data-tooltip="Assign a codename">
+                    <input type="text" id="webhookUrl" placeholder="Enter Discord Webhook URL" data-tooltip="Insert webhook URL">
+                    <button onclick="validateWebhook()" data-tooltip="Verify webhook">
+                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 8l3 3 5-5" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Validate
+                    </button>
+                    <button onclick="saveWebhook()" data-tooltip="Store webhook">
+                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 4h12v8H2z" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Save
+                    </button>
+                    <button onclick="loginWithDiscord()" data-tooltip="Authenticate via Discord">
+                        <svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Login
+                    </button>
                     <div class="spinner" id="validateSpinner"></div>
                 </div>
             </div>
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">Webhook Profile</div>
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 8h8M8 4v8" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Webhook Profile
+                </div>
                 <div class="category-content" id="webhookProfile"></div>
+            </div>
+            <div class="category">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 3h10v10H3z" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Bot Control
+                </div>
+                <div class="category-content">
+                    <select id="botStatus" data-tooltip="Set bot status">
+                        <option value="online">Online</option>
+                        <option value="idle">Idle</option>
+                        <option value="dnd">Do Not Disturb</option>
+                        <option value="invisible">Invisible</option>
+                    </select>
+                    <button onclick="updateBotStatus()" data-tooltip="Apply status">
+                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h12" stroke="#ff1a1a" stroke-width="2"/></svg> Update Status
+                    </button>
+                    <button onclick="fetchChannels()" data-tooltip="Fetch channels">
+                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 4h8v8H4z" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Fetch Channels
+                    </button>
+                    <div id="channelList"></div>
+                </div>
             </div>
         </div>
         <div id="send" class="page">
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">Message Sender</div>
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h12M2 8l4-4M2 8l4 4" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Message Sender
+                </div>
                 <div class="category-content active">
-                    <select id="destination" data-tooltip="Select target webhook for transmission">
-                        <option value="">Select Webhook</option>
+                    <select id="destination" data-tooltip="Select target">
+                        <option value="">Select Webhook/Channel</option>
                     </select>
-                    <select id="predefinedMessages" data-tooltip="Choose a pre-coded payload">
+                    <select id="predefinedMessages" data-tooltip="Choose predefined message">
                         <option value="">Custom Message</option>
-                        <option value="> [EmuHook] Initiating cyber sequence...">Cyber Sequence</option>
-                        <option value="> [ALERT] Mainframe breach detected!">Mainframe Breach</option>
-                        <option value="> [SYSTEM] Override protocols engaged!">Override Protocols</option>
-                        <option value="> [TEST] Probing network defenses...">Network Probe</option>
-                        <option value="> [HACK] Accessing secure channels...">Secure Channels</option>
-                        <option value="> [SHADOW] Infiltrating data streams...">Data Infiltration</option>
+                        <option value="> [EmuHook] Cyber sequence... {user} at {time}">Cyber Sequence</option>
+                        <option value="> [ALERT] Breach by {user}!">Mainframe Breach</option>
+                        <option value="> [SYSTEM] Protocols at {time}!">Override Protocols</option>
                     </select>
-                    <input type="text" id="message" placeholder="Enter message or select predefined" data-tooltip="Craft your message payload">
-                    <button onclick="sendMessage()" data-tooltip="Transmit message to target">Send</button>
+                    <div class="editor-toolbar">
+                        <button onclick="formatText('bold')" data-tooltip="Bold text">𝐁</button>
+                        <button onclick="formatText('italic')" data-tooltip="Italic text">𝐼</button>
+                        <button onclick="formatText('code')" data-tooltip="Code block">💻</button>
+                    </div>
+                    <input type="text" id="message" placeholder="Enter message or select predefined" data-tooltip="Craft message">
+                    <input type="file" id="attachment" accept="image/*,text/*" data-tooltip="Upload file">
+                    <label><input type="checkbox" id="tts" data-tooltip="Enable TTS"> TTS</label>
+                    <input type="text" id="reactions" placeholder="Emojis (e.g., 😄👍)" maxlength="10" data-tooltip="Add emojis">
+                    <input type="number" id="sendDelay" min="0" step="1" placeholder="Delay (s)" data-tooltip="Schedule delay">
+                    <div class="category">
+                        <div class="category-header" onclick="toggleCategory(this)">
+                            <svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 3h10v10H3z" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Embed Options
+                        </div>
+                        <div class="category-content">
+                            <input type="text" id="embedTitle" placeholder="Embed Title" data-tooltip="Set title">
+                            <input type="text" id="embedDescription" placeholder="Embed Description" data-tooltip="Set description">
+                            <input type="color" id="embedColor" value="#ff1a1a" data-tooltip="Set color">
+                        </div>
+                    </div>
+                    <button onclick="sendMessage()" data-tooltip="Send message">
+                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h12M2 8l4-4M2 8l4 4" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Send
+                    </button>
                     <div class="spinner" id="sendSpinner"></div>
                 </div>
             </div>
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">Live Stream</div>
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 4h8v8H4z" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Live Stream
+                </div>
                 <div class="category-content active" id="liveStream"></div>
             </div>
         </div>
         <div id="spam" class="page">
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">Spam Console (Testing Only)</div>
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h12M2 8l4-4M2 8l4 4" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Spam Console
+                </div>
                 <div class="category-content active">
-                    <select id="spamDestination" data-tooltip="Select target webhook for spam">
-                        <option value="">Select Webhook</option>
+                    <select id="spamDestination" data-tooltip="Select target">
+                        <option value="">Select Webhook/Channel</option>
                     </select>
-                    <select id="spamPredefinedMessages" data-tooltip="Choose a pre-coded spam payload">
+                    <select id="spamPredefinedMessages" data-tooltip="Choose predefined message">
                         <option value="">Custom Message</option>
-                        <option value="> [EmuHook] Initiating cyber sequence...">Cyber Sequence</option>
-                        <option value="> [ALERT] Mainframe breach detected!">Mainframe Breach</option>
-                        <option value="> [SYSTEM] Override protocols engaged!">Override Protocols</option>
-                        <option value="> [TEST] Probing network defenses...">Network Probe</option>
-                        <option value="> [HACK] Accessing secure channels...">Secure Channels</option>
-                        <option value="> [SHADOW] Infiltrating data streams...">Data Infiltration</option>
+                        <option value="> [EmuHook] Cyber sequence... {user} at {time}">Cyber Sequence</option>
+                        <option value="> [ALERT] Breach by {user}!">Mainframe Breach</option>
+                        <option value="> [SYSTEM] Protocols at {time}!">Override Protocols</option>
                     </select>
-                    <input type="text" id="spamMessage" placeholder="Enter message or select predefined" data-tooltip="Craft spam message payload">
-                    <input type="number" id="spamCount" min="1" placeholder="Number of messages" data-tooltip="Set transmission count">
-                    <input type="number" id="spamDelay" min="0" step="0.1" placeholder="Delay (seconds)" data-tooltip="Set delay between transmissions">
-                    <button onclick="spamMessages()" data-tooltip="Initiate spam sequence">Start Spamming</button>
-                    <button onclick="cancelSpam()" data-tooltip="Halt spam sequence">Cancel</button>
+                    <input type="text" id="spamMessage" placeholder="Enter message or select predefined" data-tooltip="Craft spam message">
+                    <input type="number" id="spamCount" min="1" placeholder="Message Count" data-tooltip="Set count">
+                    <input type="number" id="spamDelayMin" min="0" step="0.1" placeholder="Min Delay (s)" data-tooltip="Min delay">
+                    <input type="number" id="spamDelayMax" min="0" step="0.1" placeholder="Max Delay (s)" data-tooltip="Max delay">
+                    <select id="spamPattern" data-tooltip="Select pattern">
+                        <option value="linear">Linear</option>
+                        <option value="burst">Burst</option>
+                        <option value="wave">Wave</option>
+                    </select>
+                    <input type="text" id="messageVariation" placeholder="Prefix/Suffix (e.g., [x])" data-tooltip="Add variation">
+                    <label><input type="checkbox" id="randomizeMessages" data-tooltip="Randomize messages"> Randomize</label>
+                    <label><input type="checkbox" id="spamTts" data-tooltip="Enable TTS"> TTS</label>
+                    <div id="rateLimitStatus" class="neon">Rate Limit: 100%</div>
+                    <button onclick="spamMessages()" data-tooltip="Start spamming">
+                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h12M2 8l4-4M2 8l4 4" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Start
+                    </button>
+                    <button onclick="cancelSpam()" data-tooltip="Stop spamming">
+                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 4l8 8M4 12l8-8" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Cancel
+                    </button>
                     <div class="spinner" id="spamSpinner"></div>
                 </div>
             </div>
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">Live Stream</div>
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 4h8v8H4z" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Live Stream
+                </div>
                 <div class="category-content active" id="liveStreamSpam"></div>
             </div>
         </div>
         <div id="saved" class="page">
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">Saved Webhooks</div>
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 4h12v8H2z" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Saved Webhooks
+                </div>
                 <div class="category-content active" id="savedWebhooks"></div>
             </div>
         </div>
         <div id="history" class="page">
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">Message History</div>
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 2v6h4" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Message History
+                </div>
                 <div class="category-content active" id="messageHistory"></div>
             </div>
         </div>
         <div id="settings" class="page">
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">System Settings</div>
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 2v12M2 8h12" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> System Settings
+                </div>
                 <div class="category-content active">
-                    <label>Neon Intensity:</label>
-                    <input type="range" id="neonIntensity" min="0.5" max="2" step="0.1" value="1" data-tooltip="Adjust neon glow strength">
-                    <label>Animation Speed:</label>
-                    <input type="range" id="animationSpeed" min="0.5" max="2" step="0.1" value="1" data-tooltip="Adjust animation velocity">
-                    <button onclick="clearSavedWebhooks()" data-tooltip="Erase all saved webhooks">Clear Saved Webhooks</button>
-                    <button onclick="logout()" data-tooltip="Terminate session">Logout</button>
+                    <label>Cursor Trail Intensity:</label>
+                    <input type="range" id="cursorTrailIntensity" min="0.1" max="1" step="0.1" value="0.6" data-tooltip="Adjust trail opacity">
+                    <label>Cursor Trail Color:</label>
+                    <input type="color" id="cursorTrailColor" value="#ff4d4d" data-tooltip="Set trail color">
+                    <label>Particle Density:</label>
+                    <input type="range" id="particleDensity" min="50" max=200 step="10" value="100" data-tooltip="Adjust particle count">
+                    <label>Particle Speed:</label>
+                    <input type="range" id="particleSpeed" min="1" max="8" step="1" value="4" data-tooltip="Adjust particle speed">
+                    <label>Sound Volume:</label>
+                    <input type="range" id="soundVolume" min="0" max="1" step="0.1" value="0.3" data-tooltip="Adjust beep volume">
+                    <select id="theme" data-tooltip="Select UI theme">
+                        <option value="theme-dark-red">Dark Red</option>
+                        <option value="theme-neon-green">Neon Green</option>
+                        <option value="theme-cyber-blue">Cyber Blue</option>
+                    </select>
+                    <button onclick="applySettings()" data-tooltip="Apply settings">
+                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 8l3 3 5-5" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Apply
+                    </button>
+                    <button onclick="clearSavedWebhooks()" data-tooltip="Clear webhooks">
+                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 4l8 8M4 12l8-8" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Clear Webhooks
+                    </button>
+                    <button onclick="logout()" data-tooltip="Logout">
+                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 2v12M2 8h6" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Logout
+                    </button>
                 </div>
             </div>
-            <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)">System Diagnostics</div>
-                <div class="category-content" id="diagnostics"></div>
-            </div>
         </div>
-        <div class="category">
-            <div class="category-header" onclick="toggleCategory(this)">System Logs</div>
-            <div class="category-content active" id="output"></div>
+    </div>
+    <button class="log-toggle" onclick="toggleLogWindow()" data-tooltip="View logs">
+        <svg width="20" height="20" viewBox="0 0 20 20"><path d="M4 4h12v12H4z" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg>
+    </button>
+    <div class="log-window" id="logWindow">
+        <div class="log-header">
+            <span>System Logs</span>
+            <button class="log-close" onclick="toggleLogWindow()">X</button>
         </div>
+        <div id="logContent"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/howler@2.2.3/dist/howler.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/discord.js@14.15.3/dist/discord.min.js"></script>
     <script>
-        // Particles.js
-        particlesJS('particles-js', {
-            particles: {
-                number: { value: 150, density: { enable: true, value_area: 800 } },
-                color: { value: '#ff1a1a' },
-                shape: { type: ['circle', 'triangle', 'edge'] },
-                opacity: { value: 0.8, random: true },
-                size: { value: 5, random: true },
-                line_linked: { enable: true, distance: 100, color: '#ff1a1a', opacity: 0.6, width: 2 },
-                move: { enable: true, speed: 5, direction: 'none', random: true }
-            },
-            interactivity: {
-                detect_on: 'canvas',
-                events: { onhover: { enable: true, mode: 'repulse' }, onclick: { enable: true, mode: 'push' } },
-                modes: { repulse: { distance: 150 }, push: { particles_nb: 6 } }
-            }
-        });
+        // Warning: Client-side bot token exposure is insecure. Use server-side for production.
+        const BOT_TOKEN = 'lPtbq-Xicowj5StE9qHztXPclAJd5ekN';
+        const client = new Discord.Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
+        client.login(BOT_TOKEN).catch(err => log('Bot login error: ' + err.message));
 
-        // Matrix Rain
-        const canvas = document.getElementById('matrix');
-        const ctx = canvas.getContext('2d');
-        canvas.height = window.innerHeight;
-        canvas.width = window.innerWidth;
-        const chars = '0101EMUH00K1010ハッカーマトリックス';
-        const fontSize = 14;
-        const columns = canvas.width / fontSize;
-        const drops = Array(Math.floor(columns)).fill(0);
-        function drawMatrix() {
-            ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#ff1a1a';
-            ctx.font = fontSize + 'px monospace';
-            for (let i = 0; i < drops.length; i++) {
-                const text = chars.charAt(Math.floor(Math.random() * chars.length));
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-                drops[i]++;
+        // Particles.js
+        let particleConfig = {
+            particles: {
+                number: { value: 100 },
+                color: { value: '#ff1a1a' },
+                shape: { type: 'circle' },
+                opacity: { value: 0.7 },
+                size: { value: 4 },
+                move: { enable: true, speed: 4 }
             }
+        };
+        particlesJS('particles-js', particleConfig);
+
+        // Cursor Trail
+        const trails = [];
+        for (let i = 0; i < 8; i++) {
+            const trail = document.createElement('div');
+            trail.className = 'cursor-trail';
+            document.body.appendChild(trail);
+            trails.push(trail);
         }
-        setInterval(drawMatrix, 33);
+        let trailIndex = 0;
+        document.addEventListener('mousemove', (e) => {
+            const trail = trails[trailIndex];
+            trail.style.left = e.clientX + 'px';
+            trail.style.top = e.clientY + 'px';
+            trail.style.opacity = document.getElementById('cursorTrailIntensity')?.value || 0.6;
+            trail.style.background = document.getElementById('cursorTrailColor')?.value || '#ff4d4d';
+            trailIndex = (trailIndex + 1) % trails.length;
+        });
 
         // Sound Effects
         const beep = new Howl({ src: ['https://cdn.pixabay.com/audio/2022/03/10/audio_6b1c7f6b1f.mp3'], volume: 0.3 });
@@ -487,15 +614,16 @@
         let user = null;
         let messagesSent = 0;
         const startTime = Date.now();
+        let channels = [];
 
         function log(message) {
             beep.play();
-            const output = document.getElementById('output');
-            const typed = new Typed('#output', {
-                strings: [`> [${new Date().toLocaleTimeString()}] ${message}\n${output.textContent}`],
+            const logContent = document.getElementById('logContent');
+            const typed = new Typed('#logContent', {
+                strings: [`> [${new Date().toLocaleTimeString()}] ${message}\n${logContent.textContent}`],
                 typeSpeed: 20,
                 showCursor: false,
-                onComplete: () => output.scrollTop = output.scrollHeight
+                onComplete: () => logContent.scrollTop = logContent.scrollHeight
             });
         }
 
@@ -503,7 +631,6 @@
             const stream = document.getElementById(streamId);
             const entry = document.createElement('div');
             entry.textContent = `> [${new Date().toLocaleTimeString()}] ${user ? user.username : 'EmuHook'}: ${message}`;
-            entry.style.animation = 'fadeIn 0.5s';
             stream.appendChild(entry);
             stream.scrollTop = stream.scrollHeight;
             messageHistory.push({ time: new Date().toLocaleTimeString(), message, sender: user ? user.username : 'EmuHook' });
@@ -515,7 +642,7 @@
 
         function updateStatusBar() {
             const uptime = Math.floor((Date.now() - startTime) / 1000);
-            document.getElementById('statusBar').textContent = `Uptime: ${uptime}s | Messages Sent: ${messagesSent} | Webhooks: ${savedWebhooks.length}`;
+            document.getElementById('statusBar').textContent = `Uptime: ${uptime}s | Messages: ${messagesSent} | Webhooks: ${savedWebhooks.length}`;
         }
 
         function showPage(pageId) {
@@ -527,24 +654,25 @@
         }
 
         function toggleCategory(header) {
-            const content = header.nextElementSibling;
-            content.classList.toggle('active');
+            header.nextElementSibling.classList.toggle('active');
+            beep.play();
+        }
+
+        function toggleLogWindow() {
+            document.getElementById('logWindow').classList.toggle('active');
             beep.play();
         }
 
         async function validateWebhook() {
             const url = document.getElementById('webhookUrl').value.trim();
-            if (!url) {
-                log('Error: Webhook URL required.');
-                return;
-            }
+            if (!url) return log('Error: Webhook URL required.');
             document.getElementById('validateSpinner').classList.add('active');
             try {
                 const response = await fetch(url, { method: 'GET' });
                 document.getElementById('validateSpinner').classList.remove('active');
                 if (response.status === 200) {
                     webhookUrl = url;
-                    log('Webhook validated successfully.');
+                    log('Webhook validated.');
                     fetchWebhookProfile(url);
                     updateDestinationSelects();
                 } else {
@@ -561,12 +689,10 @@
                 const response = await fetch(url);
                 const data = await response.json();
                 const avatarUrl = data.avatar ? `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=64` : null;
-                const profileDiv = document.getElementById('webhookProfile');
-                profileDiv.innerHTML = `
-                    ${avatarUrl ? `<img src="${avatarUrl}" class="webhook-avatar" alt="Webhook Avatar">` : ''}
-                    <p class="neon">Webhook Name: ${data.name || 'N/A'}</p>
-                    <p class="neon">Channel ID: ${data.channel_id || 'N/A'}</p>
-                    <p class="neon">Guild ID: ${data.guild_id || 'N/A'}</p>
+                document.getElementById('webhookProfile').innerHTML = `
+                    ${avatarUrl ? `<img src="${avatarUrl}" class="webhook-avatar">` : ''}
+                    <p class="neon">Webhook: ${data.name || 'N/A'}</p>
+                    <p class="neon">Channel: ${data.channel_id || 'N/A'}</p>
                 `;
             } catch (error) {
                 log('Profile fetch error: ' + error.message);
@@ -576,18 +702,15 @@
         function saveWebhook() {
             const url = document.getElementById('webhookUrl').value.trim();
             const name = document.getElementById('webhookName').value.trim() || `Webhook ${savedWebhooks.length + 1}`;
-            if (!webhookUrl) {
-                log('Error: No valid webhook to save.');
-                return;
-            }
+            if (!webhookUrl) return log('Error: No valid webhook.');
             if (!savedWebhooks.some(w => w.url === webhookUrl)) {
                 savedWebhooks.push({ name, url: webhookUrl });
                 localStorage.setItem('webhooks', JSON.stringify(savedWebhooks));
-                log(`Webhook saved as "${name}".`);
+                log(`Webhook saved: ${name}`);
                 updateSavedWebhooks();
                 updateDestinationSelects();
             } else {
-                log('Webhook already exists in storage.');
+                log('Webhook already saved.');
             }
         }
 
@@ -598,8 +721,8 @@
                 const div = document.createElement('div');
                 div.className = 'saved-webhook';
                 div.innerHTML = `<span>${name}: ${url}</span>
-                                 <button onclick="loadWebhook('${url}')" data-tooltip="Load this webhook">Load</button>
-                                 <button onclick="deleteWebhook('${url}')" data-tooltip="Delete this webhook">Delete</button>`;
+                    <button onclick="loadWebhook('${url}')"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 8h8M8 4v8" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Load</button>
+                    <button onclick="deleteWebhook('${url}')"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 4l8 8M4 12l8-8" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Delete</button>`;
                 savedDiv.appendChild(div);
             });
         }
@@ -623,7 +746,7 @@
         function clearSavedWebhooks() {
             savedWebhooks = [];
             localStorage.setItem('webhooks', JSON.stringify(savedWebhooks));
-            log('All saved webhooks cleared.');
+            log('Webhooks cleared.');
             updateSavedWebhooks();
             updateDestinationSelects();
         }
@@ -634,7 +757,6 @@
             messageHistory.forEach(({ time, message, sender }) => {
                 const div = document.createElement('div');
                 div.textContent = `> [${time}] ${sender}: ${message}`;
-                div.style.animation = 'fadeIn 0.5s';
                 historyDiv.appendChild(div);
             });
         }
@@ -642,204 +764,210 @@
         function updateDestinationSelects() {
             const selects = [document.getElementById('destination'), document.getElementById('spamDestination')];
             selects.forEach(select => {
-                select.innerHTML = '<option value="">Select Webhook</option>';
+                select.innerHTML = '<option value="">Select Webhook/Channel</option>';
                 savedWebhooks.forEach(({ name, url }) => {
                     const option = document.createElement('option');
-                    option.value = url;
-                    option.textContent = name;
+                    option.value = `webhook:${url}`;
+                    option.textContent = `Webhook: ${name}`;
                     select.appendChild(option);
                 });
-                if (webhookUrl) {
-                    select.value = webhookUrl;
-                }
+                channels.forEach(channel => {
+                    const option = document.createElement('option');
+                    option.value = `channel:${channel.id}`;
+                    option.textContent = `Channel: ${channel.name} (#${channel.id})`;
+                    select.appendChild(option);
+                });
             });
+        }
+
+        async function loginWithDiscord() {
+            log('Discord login not implemented in client-side demo.');
+        }
+
+        async function updateBotStatus() {
+            const status = document.getElementById('botStatus').value;
+            try {
+                await client.user.setStatus(status);
+                log(`Bot status updated to: ${status}`);
+            } catch (error) {
+                log('Status update error: ' + error.message);
+            }
+        }
+
+        async function fetchChannels() {
+            try {
+                const guilds = client.guilds.cache;
+                channels = [];
+                guilds.forEach(guild => {
+                    guild.channels.cache.forEach(channel => {
+                        if (channel.type === 'GUILD_TEXT') {
+                            channels.push({ id: channel.id, name: channel.name });
+                        }
+                    });
+                });
+                const channelList = document.getElementById('channelList');
+                channelList.innerHTML = channels.map(c => `<div>${c.name} (#${c.id})</div>`).join('');
+                updateDestinationSelects();
+                log('Channels fetched: ' + channels.length);
+            } catch (error) {
+                log('Channel fetch error: ' + error.message);
+            }
+        }
+
+        function formatText(type) {
+            const input = document.getElementById('message');
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            const selected = input.value.substring(start, end);
+            if (!selected) return;
+            const formatted = type === 'bold' ? `**${selected}**` : type === 'italic' ? `*${selected}*` : `\`\`\`${selected}\`\`\``;
+            input.value = input.value.substring(0, start) + formatted + input.value.substring(end);
+            log(`Applied ${type} formatting.`);
         }
 
         async function sendMessage() {
             const destination = document.getElementById('destination').value;
-            let message = document.getElementById('message').value.trim();
-            const predefined = document.getElementById('predefinedMessages').value;
-            if (predefined) message = predefined;
-            if (!destination) {
-                log('Error: Select a webhook.');
-                return;
-            }
-            if (!message) {
-                log('Error: Message required.');
-                return;
-            }
+            let message = document.getElementById('predefinedMessages').value || document.getElementById('message').value;
+            const tts = document.getElementById('tts').checked;
+            const reactions = document.getElementById('reactions').value.split('').filter(c => c.match(/\p{Emoji}/u)).slice(0, 5);
+            const delay = parseInt(document.getElementById('sendDelay').value) || 0;
+            const file = document.getElementById('attachment').files[0];
+            const embed = {
+                title: document.getElementById('embedTitle').value || undefined,
+                description: document.getElementById('embedDescription').value || undefined,
+                color: parseInt(document.getElementById('embedColor').value.replace('#', ''), 16) || undefined
+            };
+
+            if (!destination || (!message && !file && !embed.title && !embed.description)) return log('Error: Select destination and provide content.');
+
+            message = message.replace('{user}', user ? user.username : 'EmuHook').replace('{time}', new Date().toLocaleTimeString());
             document.getElementById('sendSpinner').classList.add('active');
+
             try {
-                const response = await fetch(destination, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content: message, username: user ? user.username : 'EmuHook' })
-                });
-                document.getElementById('sendSpinner').classList.remove('active');
-                if (response.status === 204) {
-                    log('Message transmitted successfully.');
+                if (destination.startsWith('webhook:')) {
+                    const url = destination.replace('webhook:', '');
+                    const formData = new FormData();
+                    formData.append('content', message);
+                    if (tts) formData.append('tts', 'true');
+                    if (embed.title || embed.description) formData.append('embeds', JSON.stringify([embed]));
+                    if (file) formData.append('file', file);
+                    await new Promise(resolve => setTimeout(resolve, delay * 1000));
+                    const response = await fetch(url, { method: 'POST', body: formData });
+                    if (response.status === 204) {
+                        log('Message sent via webhook.');
+                        updateLiveStream(message);
+                        if (reactions.length) log('Reactions not supported for webhooks.');
+                    } else {
+                        log('Webhook send error: ' + response.status);
+                    }
+                } else if (destination.startsWith('channel:')) {
+                    const channelId = destination.replace('channel:', '');
+                    const channel = client.channels.cache.get(channelId);
+                    if (!channel) return log('Error: Channel not found.');
+                    await new Promise(resolve => setTimeout(resolve, delay * 1000));
+                    const msg = await channel.send({ content: message, tts, embeds: embed.title || embed.description ? [embed] : [], files: file ? [file] : [] });
+                    for (const emoji of reactions) await msg.react(emoji);
+                    log('Message sent via bot.');
                     updateLiveStream(message);
-                } else {
-                    log('Transmission failed.');
                 }
             } catch (error) {
+                log('Send error: ' + error.message);
+            } finally {
                 document.getElementById('sendSpinner').classList.remove('active');
-                log('Transmission error: ' + error.message);
             }
         }
 
         async function spamMessages() {
+            if (isSpamming) return log('Spam already running.');
             const destination = document.getElementById('spamDestination').value;
-            let message = document.getElementById('spamMessage').value.trim();
-            const predefined = document.getElementById('spamPredefinedMessages').value;
-            if (predefined) message = predefined;
-            const count = parseInt(document.getElementById('spamCount').value);
-            const delay = parseFloat(document.getElementById('spamDelay').value);
-
-            if (!destination) {
-                log('Error: Select a webhook.');
-                return;
-            }
-            if (!message || isNaN(count) || count < 1 || isNaN(delay) || delay < 0) {
-                log('Error: Invalid message, count, or delay.');
-                return;
-            }
+            let message = document.getElementById('spamPredefinedMessages').value || document.getElementById('spamMessage').value;
+            const count = parseInt(document.getElementById('spamCount').value) || 1;
+            const minDelay = parseFloat(document.getElementById('spamDelayMin').value) || 0;
+            const maxDelay = parseFloat(document.getElementById('spamDelayMax').value) || minDelay;
+            const pattern = document.getElementById('spamPattern').value;
+            const variation = document.getElementById('messageVariation').value;
+            const randomize = document.getElementById('randomizeMessages').checked;
+            const tts = document.getElementById('spamTts').checked;
+            const predefined = document.getElementById('spamPredefinedMessages').options;
+            if (!destination || (!message && !randomize)) return log('Error: Select destination and provide content.');
 
             isSpamming = true;
-            log(`Initiating ${count} transmissions with ${delay}s delay...`);
             document.getElementById('spamSpinner').classList.add('active');
+            let sent = 0;
 
-            for (let i = 1; i <= count && isSpamming; i++) {
-                try {
-                    const response = await fetch(destination, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ content: `${message} (Spam #${i})`, username: user ? user.username : 'EmuHook' })
-                    });
-                    if (response.status === 204) {
-                        log(`Transmitted message ${i}/${count}`);
-                        updateLiveStream(`${message} (Spam #${i})`, 'liveStreamSpam');
-                    } else {
-                        log(`Failed to transmit message ${i}.`);
-                        isSpamming = false;
+            const sendSingle = async () => {
+                const msg = randomize ? predefined[Math.floor(Math.random() * predefined.length)].value : message;
+                const variedMsg = variation ? `${variation.replace('[x]', Math.floor(Math.random() * 100))}${msg}${variation.replace('[x]', Math.floor(Math.random() * 100))}` : msg.replace('{user}', user ? user.username : 'EmuHook').replace('{time}', new Date().toLocaleTimeString());
+                if (destination.startsWith('webhook:')) {
+                    const url = destination.replace('webhook:', '');
+                    await fetch(url, { method: 'POST', body: new FormData().append('content', variedMsg).append('tts', tts ? 'true' : 'false') });
+                    updateLiveStream(variedMsg, 'liveStreamSpam');
+                } else if (destination.startsWith('channel:')) {
+                    const channelId = destination.replace('channel:', '');
+                    const channel = client.channels.cache.get(channelId);
+                    if (channel) await channel.send({ content: variedMsg, tts });
+                    updateLiveStream(variedMsg, 'liveStreamSpam');
+                }
+                sent++;
+                document.getElementById('rateLimitStatus').textContent = `Rate Limit: ${Math.round((1 - sent / count) * 100)}%`;
+                log(`Spam sent ${sent}/${count}`);
+            };
+
+            try {
+                if (pattern === 'linear') {
+                    for (let i = 0; i < count && isSpamming; i++) {
+                        await sendSingle();
+                        await new Promise(resolve => setTimeout(resolve, Math.random() * (maxDelay - minDelay) + minDelay * 1000));
                     }
-                } catch (error) {
-                    log('Transmission error: ' + error.message);
-                    isSpamming = false;
+                } else if (pattern === 'burst') {
+                    for (let i = 0; i < count && isSpamming; i += 5) {
+                        await Promise.all(Array(Math.min(5, count - i)).fill().map(() => sendSingle()));
+                        await new Promise(resolve => setTimeout(resolve, Math.random() * (maxDelay - minDelay) + minDelay * 1000));
+                    }
+                } else if (pattern === 'wave') {
+                    for (let i = 0; i < count && isSpamming; i++) {
+                        await sendSingle();
+                        const waveDelay = (Math.sin(i / 5) * (maxDelay - minDelay) + minDelay) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, waveDelay));
+                    }
                 }
-                if (i < count && isSpamming) {
-                    await new Promise(resolve => setTimeout(resolve, delay * 1000));
-                }
-            }
-            document.getElementById('spamSpinner').classList.remove('active');
-            if (isSpamming) {
+            } catch (error) {
+                log('Spam error: ' + error.message);
+            } finally {
+                isSpamming = false;
+                document.getElementById('spamSpinner').classList.remove('active');
                 log('Spam sequence completed.');
             }
-            isSpamming = false;
         }
 
         function cancelSpam() {
             isSpamming = false;
             document.getElementById('spamSpinner').classList.remove('active');
-            log('Spam sequence terminated.');
+            log('Spam sequence cancelled.');
         }
 
-        // Discord OAuth2
-        function loginWithDiscord() {
-            const clientId = 'YOUR_CLIENT_ID'; // Replace with your Discord app client ID
-            const redirectUri = encodeURIComponent(window.location.origin);
-            const scope = 'identify';
-            window.location.href = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}`;
-        }
-
-        async function handleOAuthCallback() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get('code');
-            if (code) {
-                try {
-                    const response = await fetch('https://discord.com/api/oauth2/token', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: new URLSearchParams({
-                            client_id: 'YOUR_CLIENT_ID', // Replace with your client ID
-                            client_secret: 'YOUR_CLIENT_SECRET', // Replace with your client secret
-                            grant_type: 'authorization_code',
-                            code,
-                            redirect_uri: window.location.origin
-                        })
-                    });
-                    const tokenData = await response.json();
-                    if (tokenData.access_token) {
-                        const userResponse = await fetch('https://discord.com/api/users/@me', {
-                            headers: { Authorization: `Bearer ${tokenData.access_token}` }
-                        });
-                        user = await userResponse.json();
-                        document.getElementById('userInfo').textContent = `Operative: ${user.username}#${user.discriminator}`;
-                        log(`Authenticated as ${user.username}`);
-                        history.replaceState(null, '', window.location.pathname);
-                    }
-                } catch (error) {
-                    log('OAuth2 error: ' + error.message);
-                }
-            }
+        function applySettings() {
+            const theme = document.getElementById('theme').value;
+            document.body.className = theme;
+            particleConfig.particles.color.value = theme === 'theme-neon-green' ? '#00ff00' : theme === 'theme-cyber-blue' ? '#00b7eb' : '#ff1a1a';
+            particleConfig.particles.number.value = parseInt(document.getElementById('particleDensity').value);
+            particleConfig.particles.move.speed = parseInt(document.getElementById('particleSpeed').value);
+            particlesJS('particles-js', particleConfig);
+            beep.volume(document.getElementById('soundVolume').value);
+            log('Settings applied.');
         }
 
         function logout() {
             user = null;
             document.getElementById('userInfo').textContent = 'Not Logged In';
-            log('Session terminated.');
+            log('Logged out.');
         }
-
-        // Settings
-        function applySettings() {
-            const neonIntensity = document.getElementById('neonIntensity').value;
-            const animationSpeed = document.getElementById('animationSpeed').value;
-            document.documentElement.style.setProperty('--neon-intensity', neonIntensity);
-            document.documentElement.style.setProperty('--animation-speed', animationSpeed);
-            log('System settings updated.');
-        }
-
-        // Diagnostics (Mock)
-        function updateDiagnostics() {
-            const diagnostics = document.getElementById('diagnostics');
-            diagnostics.innerHTML = `
-                <p class="neon">System Status: Online</p>
-                <p class="neon">CPU Load: ${Math.floor(Math.random() * 50)}%</p>
-                <p class="neon">Memory Usage: ${Math.floor(Math.random() * 80)}%</p>
-                <p class="neon">Network Latency: ${Math.floor(Math.random() * 100)}ms</p>
-            `;
-        }
-
-        // Keyboard Shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey) {
-                switch (e.key) {
-                    case '1': showPage('home'); break;
-                    case '2': showPage('send'); break;
-                    case '3': showPage('spam'); break;
-                    case '4': showPage('saved'); break;
-                    case '5': showPage('history'); break;
-                    case '6': showPage('settings'); break;
-                }
-            }
-        });
 
         // Initialize
         updateSavedWebhooks();
-        updateDestinationSelects();
         updateMessageHistory();
-        updateDiagnostics();
+        updateDestinationSelects();
         updateStatusBar();
-        handleOAuthCallback();
-        document.getElementById('predefinedMessages').addEventListener('change', () => {
-            document.getElementById('message').value = document.getElementById('predefinedMessages').value;
-        });
-        document.getElementById('spamPredefinedMessages').addEventListener('change', () => {
-            document.getElementById('spamMessage').value = document.getElementById('spamPredefinedMessages').value;
-        });
-        document.getElementById('neonIntensity').addEventListener('input', applySettings);
-        document.getElementById('animationSpeed').addEventListener('input', applySettings);
-        setInterval(updateDiagnostics, 5000);
         setInterval(updateStatusBar, 1000);
     </script>
 </body>
