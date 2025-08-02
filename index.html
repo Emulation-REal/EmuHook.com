@@ -3,8 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EmuHook: Cyber Terminal v5.5</title>
+    <title>EmuHook: Cyber Terminal v6.0</title>
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAALFJREFUWEftl8sNgzAMRF8c7H8lc7B7YfU6e2gEy6N48mTqkrBAIQiCIAiCIAiCIAiCIAiCIAiCIAiC4B/3eAdagKXF9z6Samap9dZYd95SaTmbT2u0mc6m8/F0MZtP5+P5YjabT+fj8WI2n87H48VsPp2Px4vZfDofjxfz+XQ+nk/n4/FiNp/Op/PpfDqfj8eL2Xw6H48Xs/l0Pp5P5+Pxfj6fj+fT+Xg+n88v9oC6xQAAAABJRU5ErkJggg==">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
     <style>
+        :root {
+            --neon-intensity: 1;
+            --animation-speed: 1;
+            --primary-color: #ff1a1a;
+            --secondary-color: #0a0a0a;
+        }
         * {
             margin: 0;
             padding: 0;
@@ -12,29 +21,29 @@
             font-family: 'Courier New', Courier, monospace;
         }
         body {
-            background: #0a0a0a;
-            color: #ff1a1a;
+            background: var(--secondary-color);
+            color: var(--primary-color);
             overflow-x: hidden;
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="%230a0a0a" stroke="%23ff4d4d" stroke-width="3"/><path d="M16 6v20M6 16h20" stroke="%23ff4d4d" stroke-width="3" stroke-linecap="round"/></svg>'), auto;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M10 0v8m0 4v8M0 10h8m4 0h8" stroke="%23ff1a1a" stroke-width="2"/></svg>'), auto;
+            transition: background 0.5s;
         }
-        .cursor-trail {
-            position: fixed;
-            width: 8px;
-            height: 8px;
-            background: #ff4d4d;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 1000;
-            opacity: 0.7;
-            transition: transform 0.05s ease-out, opacity 0.2s;
-        }
-        #particles-js {
+        #particles-js, #three-js {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
+            z-index: -2;
+        }
+        .matrix-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -3;
+            pointer-events: none;
+            opacity: 0.3;
         }
         .hologram {
             position: fixed;
@@ -42,93 +51,94 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -2;
+            z-index: -1;
             background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 26, 26, 0.1) 2px, rgba(255, 26, 26, 0.1) 4px);
+            animation: scanlines calc(10s / var(--animation-speed)) linear infinite;
         }
         .container {
-            max-width: 900px;
-            margin: 50px auto 20px;
-            padding: 15px;
-            border: 2px solid #ff1a1a;
-            box-shadow: 0 0 20px rgba(255, 26, 26, 0.3);
-            border-radius: 8px;
+            max-width: 1200px;
+            margin: 60px auto 20px;
+            padding: 20px;
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 0 40px rgba(255, 26, 26, 0.3);
+            border-radius: 10px;
+            position: relative;
+            background: rgba(10, 10, 10, 0.9);
         }
         .logo {
             display: flex;
             align-items: center;
-            font-size: 1.4em;
-            text-shadow: 0 0 10px #ff1a1a;
-            animation: neon-pulse 1.5s infinite;
-            margin: 0 8px;
-        }
-        .logo::before {
-            content: '🖥️';
-            margin-right: 8px;
-            font-size: 1.2em;
+            font-size: 1.8em;
+            text-shadow: 0 0 15px var(--primary-color), 0 0 30px var(--primary-color);
+            animation: neon-pulse calc(1.5s / var(--animation-speed)) infinite;
+            margin: 0 10px;
         }
         .nav-bar {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            background: rgba(10, 10, 10, 0.9);
-            border-bottom: 2px solid #ff1a1a;
+            background: rgba(10, 10, 10, 0.95);
+            border-bottom: 2px solid var(--primary-color);
+            box-shadow: 0 0 15px rgba(255, 26, 26, 0.5);
             z-index: 10;
             display: flex;
             align-items: center;
             padding: 5px;
-            height: 40px;
-        }
-        .nav-bar .logo {
-            margin-right: auto;
+            height: 50px;
         }
         .nav-bar button {
             background: none;
-            border: 2px solid #ff1a1a;
-            color: #ff1a1a;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
             padding: 5px 10px;
             cursor: pointer;
             transition: all 0.3s;
+            text-shadow: 0 0 5px var(--primary-color);
             border-radius: 5px;
-            font-size: 0.8em;
+            font-size: 0.9em;
             margin: 0 3px;
             display: flex;
             align-items: center;
             gap: 5px;
         }
         .nav-bar button:hover, .nav-bar button.active {
-            background: #ff1a1a;
-            color: #0a0a0a;
-            box-shadow: 0 0 10px #ff1a1a;
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            box-shadow: 0 0 15px var(--primary-color);
+            animation: glitch 0.3s;
         }
         .status-bar {
             position: absolute;
             top: 10px;
             left: 10px;
-            color: #ff1a1a;
-            font-size: 0.7em;
+            color: var(--primary-color);
+            font-size: 0.8em;
+            text-shadow: 0 0 5px var(--primary-color);
         }
         .user-info {
             position: absolute;
             top: 10px;
             right: 10px;
-            color: #ff1a1a;
-            font-size: 0.7em;
+            color: var(--primary-color);
+            font-size: 0.8em;
+            text-shadow: 0 0 5px var(--primary-color);
         }
         .page {
             display: none;
-            opacity: 0;
             transition: opacity 0.3s;
+            opacity: 0;
         }
         .page.active {
             display: block;
             opacity: 1;
         }
         .category {
-            margin: 10px 0;
-            border: 1px solid #ff1a1a;
+            margin: 15px 0;
+            border: 1px solid var(--primary-color);
             border-radius: 5px;
             overflow: hidden;
+            animation: fadeIn 0.5s;
         }
         .category-header {
             background: rgba(26, 26, 26, 0.5);
@@ -137,11 +147,12 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            text-shadow: 0 0 5px var(--primary-color);
             transition: all 0.3s;
         }
         .category-header:hover {
-            background: #ff1a1a;
-            color: #0a0a0a;
+            background: var(--primary-color);
+            color: var(--secondary-color);
         }
         .category-content {
             padding: 10px;
@@ -150,98 +161,74 @@
         .category-content.active {
             display: block;
         }
-        input, select, input[type="file"] {
+        input, select {
             background: transparent;
             border: none;
-            border-bottom: 2px solid #ff1a1a;
-            color: #ff1a1a;
-            padding: 6px 5px;
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 8px 5px;
             margin: 5px 0;
             width: 100%;
             font-family: 'Courier New', Courier, monospace;
             transition: all 0.3s;
         }
-        input:focus, select:focus, input[type="file"]:focus {
+        input:focus, select:focus {
             border-bottom-color: #ff4d4d;
-            box-shadow: 0 2px 8px rgba(255, 26, 26, 0.5);
+            box-shadow: 0 2px 10px rgba(255, 26, 26, 0.5);
             outline: none;
         }
-        select {
-            background: rgba(26, 26, 26, 0.5) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><path d="M2 3l3 3 3-3" stroke="%23ff1a1a" stroke-width="2" fill="none"/></svg>') no-repeat right 10px center;
-            padding-right: 25px;
-        }
-        button {
-            background: none;
-            border: 2px solid #ff1a1a;
-            color: #ff1a1a;
-            padding: 6px 12px;
-            cursor: pointer;
-            transition: all 0.3s;
+        .ql-container {
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid var(--primary-color);
             border-radius: 5px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            color: var(--primary-color);
         }
-        button:hover {
-            background: #ff1a1a;
-            color: #0a0a0a;
-            box-shadow: 0 0 10px #ff1a1a;
-        }
-        .editor-toolbar {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 8px;
-        }
-        .editor-toolbar button {
-            padding: 4px 6px;
-            font-size: 0.7em;
+        .ql-toolbar {
+            background: rgba(26, 26, 26, 0.5);
+            border: 1px solid var(--primary-color);
+            border-radius: 5px 5px 0 0;
         }
         .spinner {
             display: none;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #ff1a1a;
-            border-top: 2px solid transparent;
+            width: 18px;
+            height: 18px;
+            border: 3px solid var(--primary-color);
+            border-top: 3px solid transparent;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 8px auto;
+            margin: 10px auto;
         }
         .spinner.active {
             display: block;
         }
         #liveStream, #liveStreamSpam, #messageHistory, #logContent {
             background: rgba(10, 10, 10, 0.8);
-            border: 1px solid #ff1a1a;
-            padding: 8px;
-            height: 120px;
+            border: 1px solid var(--primary-color);
+            padding: 10px;
+            height: 200px;
             overflow-y: auto;
-            margin-top: 8px;
+            margin-top: 10px;
             border-radius: 5px;
             white-space: pre-wrap;
-        }
-        #liveStream::-webkit-scrollbar, #liveStreamSpam::-webkit-scrollbar, #messageHistory::-webkit-scrollbar, #logContent::-webkit-scrollbar {
-            width: 6px;
-        }
-        #liveStream::-webkit-scrollbar-thumb, #liveStreamSpam::-webkit-scrollbar-thumb, #messageHistory::-webkit-scrollbar-thumb, #logContent::-webkit-scrollbar-thumb {
-            background: #ff1a1a;
-            border-radius: 3px;
+            text-shadow: 0 0 5px var(--primary-color);
         }
         .saved-webhook {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px;
-            border-bottom: 1px solid #ff1a1a;
+            padding: 10px;
+            border-bottom: 1px solid var(--primary-color);
+            animation: fadeIn 0.5s;
         }
         .webhook-avatar {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            border: 2px solid #ff1a1a;
-            margin: 8px;
+            border: 2px solid var(--primary-color);
+            margin: 10px;
         }
         .neon {
-            text-shadow: 0 0 5px #ff1a1a;
+            text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
         }
         .tooltip {
             position: relative;
@@ -253,90 +240,100 @@
             left: 50%;
             transform: translateX(-50%);
             background: rgba(26, 26, 26, 0.9);
-            color: #ff1a1a;
-            padding: 4px 8px;
-            border: 1px solid #ff1a1a;
-            border-radius: 4px;
+            color: var(--primary-color);
+            padding: 5px 10px;
+            border: 1px solid var(--primary-color);
+            border-radius: 5px;
             white-space: nowrap;
             z-index: 10;
+            text-shadow: 0 0 5px var(--primary-color);
+            animation: fadeIn 0.3s;
         }
         .log-toggle {
             position: fixed;
             bottom: 20px;
             right: 20px;
             background: rgba(10, 10, 10, 0.9);
-            border: 2px solid #ff1a1a;
-            color: #ff1a1a;
-            width: 40px;
-            height: 40px;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             cursor: pointer;
+            text-shadow: 0 0 5px var(--primary-color);
             transition: all 0.3s;
             animation: float 2s ease-in-out infinite;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 0.7em;
         }
         .log-toggle:hover {
-            background: #ff1a1a;
-            color: #0a0a0a;
-            box-shadow: 0 0 15px #ff1a1a;
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            box-shadow: 0 0 20px var(--primary-color);
+            transform: scale(1.1);
         }
         .log-window {
             position: fixed;
-            bottom: 70px;
+            bottom: 80px;
             right: 20px;
-            width: 350px;
-            height: 150px;
+            width: 400px;
+            height: 250px;
             background: rgba(10, 10, 10, 0.9);
-            border: 2px solid #ff1a1a;
+            border: 2px solid var(--primary-color);
             border-radius: 5px;
             display: none;
             z-index: 20;
+            box-shadow: 0 0 20px rgba(255, 26, 26, 0.5);
         }
         .log-window.active {
             display: block;
         }
         .log-header {
             background: rgba(26, 26, 26, 0.5);
-            padding: 5px 8px;
+            padding: 5px 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            cursor: move;
         }
         .log-close {
             background: none;
             border: none;
-            color: #ff1a1a;
+            color: var(--primary-color);
             cursor: pointer;
-            font-size: 1em;
+            font-size: 1.2em;
         }
         .log-close:hover {
-            color: #0a0a0a;
-            background: #ff1a1a;
+            color: var(--secondary-color);
+            background: var(--primary-color);
         }
-        .theme-dark-red { --main-color: #ff1a1a; --glow-color: rgba(255, 26, 26, 0.5); }
-        .theme-neon-green { --main-color: #00ff00; --glow-color: rgba(0, 255, 0, 0.5); }
-        .theme-cyber-blue { --main-color: #00b7eb; --glow-color: rgba(0, 183, 235, 0.5); }
-        :root {
-            --main-color: #ff1a1a;
-            --glow-color: rgba(255, 26, 26, 0.5);
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
         }
-        .container, button, input, select, .nav-bar, .log-toggle, .log-window {
-            border-color: var(--main-color);
-            color: var(--main-color);
+        .dashboard-card {
+            background: rgba(26, 26, 26, 0.5);
+            padding: 10px;
+            border: 1px solid var(--primary-color);
+            border-radius: 5px;
+            text-align: center;
         }
-        button:hover, .nav-bar button:hover, .nav-bar button.active, .log-toggle:hover {
-            background: var(--main-color);
-            box-shadow: 0 0 10px var(--glow-color);
-        }
-        input:focus, select:focus {
-            border-bottom-color: var(--main-color);
-            box-shadow: 0 2px 8px var(--glow-color);
+        @keyframes glitch {
+            2%, 64% { transform: translate(4px, 0) skew(10deg); }
+            4%, 60% { transform: translate(-4px, 0) skew(-10deg); }
+            62% { transform: translate(0, 0) skew(0deg); }
         }
         @keyframes neon-pulse {
-            0%, 100% { text-shadow: 0 0 5px var(--main-color), 0 0 10px var(--main-color); }
-            50% { text-shadow: 0 0 10px var(--main-color), 0 0 20px var(--main-color); }
+            0%, 100% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); }
+            50% { text-shadow: 0 0 15px var(--primary-color), 0 0 30px var(--primary-color), 0 0 50px var(--primary-color); }
+        }
+        @keyframes scanlines {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 100px; }
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -346,43 +343,84 @@
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-5px); }
         }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
     </style>
 </head>
 <body>
     <div id="particles-js"></div>
+    <div id="three-js"></div>
+    <div class="matrix-rain"><canvas id="matrix"></canvas></div>
     <div class="hologram"></div>
     <div class="nav-bar">
-        <div class="logo">EmuHook v5.5</div>
-        <button onclick="showPage('home')" class="active" data-tooltip="Manage webhooks">🖥️ Home</button>
-        <button onclick="showPage('send')" data-tooltip="Send a single message">📤 Send</button>
-        <button onclick="showPage('spam')" data-tooltip="Send multiple messages">⚡ Spam</button>
-        <button onclick="showPage('saved')" data-tooltip="View saved webhooks">💾 Saved</button>
-        <button onclick="showPage('history')" data-tooltip="View sent messages">📜 History</button>
-        <button onclick="showPage('settings')" data-tooltip="Customize settings">⚙️ Settings</button>
+        <div class="logo">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAALFJREFUWEftl8sNgzAMRF8c7H8lc7B7YfU6e2gEy6N48mTqkrBAIQiCIAiCIAiCIAiCIAiCIAiCIAiC4B/3eAdagKXF9z6Samap9dZYd95SaTmbT2u0mc6m8/F0MZtP5+P5YjabT+fj8WI2n87H48VsPp2Px4vZfDofjxfz+XQ+nk/n4/FiNp/Op/PpfDqfj8eL2Xw6H48Xs/l0Pp5P5+Pxfj6fj+fT+Xg+n88v9oC6xQAAAABJRU5ErkJggg==" alt="EmuHook Icon">
+            EmuHook v6.0
+        </div>
+        <button onclick="showPage('dashboard')" class="active" data-tooltip="Ctrl+0: System Dashboard">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAGFJREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAP4O3jEAAAAASUVORK5CYII=" alt="Dashboard Icon"> Dashboard
+        </button>
+        <button onclick="showPage('home')" data-tooltip="Ctrl+1: Webhook Control">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAGFJREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAP4O3jEAAAAASUVORK5CYII=" alt="Home Icon"> Home
+        </button>
+        <button onclick="showPage('send')" data-tooltip="Ctrl+2: Send Messages">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF1JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOf3xRYAAAAASUVORK5CYII=" alt="Send Icon"> Send
+        </button>
+        <button onclick="showPage('spam')" data-tooltip="Ctrl+3: Spam Control">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAGBJREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAP0W4uEAAAAASUVORK5CYII=" alt="Spam Icon"> Spam
+        </button>
+        <button onclick="showPage('saved')" data-tooltip="Ctrl+4: Saved Webhooks">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF9JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOfFxRUAAAAASUVORK5CYII=" alt="Saved Icon"> Saved
+        </button>
+        <button onclick="showPage('history')" data-tooltip="Ctrl+5: Message History">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF5JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOcXhRYAAAAASUVORK5CYII=" alt="History Icon"> History
+        </button>
+        <button onclick="showPage('settings')" data-tooltip="Ctrl+6: System Config">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF1JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOf3xRYAAAAASUVORK5CYII=" alt="Settings Icon"> Settings
+        </button>
     </div>
     <div class="container">
         <div class="status-bar" id="statusBar"></div>
         <div class="user-info" id="userInfo">Not Logged In</div>
-        <div id="home" class="page active">
+        <div id="dashboard" class="page active">
+            <div class="dashboard">
+                <div class="dashboard-card">
+                    <h3 class="neon">Webhook Count</h3>
+                    <p id="webhookCount">0</p>
+                </div>
+                <div class="dashboard-card">
+                    <h3 class="neon">Messages Sent</h3>
+                    <p id="messagesSent">0</p>
+                </div>
+                <div class="dashboard-card">
+                    <h3 class="neon">System Uptime</h3>
+                    <p id="uptime">0s</p>
+                </div>
+                <div class="dashboard-card">
+                    <h3 class="neon">Rate Limit</h3>
+                    <p id="rateLimit">100%</p>
+                </div>
+            </div>
+        </div>
+        <div id="home" class="page">
             <div class="category">
                 <div class="category-header" onclick="toggleCategory(this)">
-                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h12M8 2v12" stroke="#ff1a1a" stroke-width="2"/></svg> Webhook Setup
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF1JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOf3xRYAAAAASUVORK5CYII=" alt="Webhook Input Icon"> Webhook Input
                 </div>
                 <div class="category-content active">
-                    <input type="text" id="webhookName" placeholder="Webhook Name (e.g., Server1)" data-tooltip="Name your webhook">
-                    <input type="text" id="webhookUrl" placeholder="Discord Webhook URL" data-tooltip="Enter a valid webhook URL">
-                    <button onclick="validateWebhook()" data-tooltip="Check if webhook is valid">
-                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 8l3 3 5-5" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Validate
-                    </button>
-                    <button onclick="saveWebhook()" data-tooltip="Save webhook for later">
-                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 4h12v8H2z" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Save
-                    </button>
+                    <input type="text" id="webhookName" placeholder="Webhook Name (Optional)" data-tooltip="Assign a codename to your webhook">
+                    <input type="text" id="webhookUrl" placeholder="Enter Discord Webhook URL" data-tooltip="Insert webhook URL for validation">
+                    <button onclick="validateWebhook()" data-tooltip="Verify webhook integrity">Validate Webhook</button>
+                    <button onclick="saveWebhook()" data-tooltip="Store webhook in system">Save Webhook</button>
+                    <button onclick="loginWithDiscord()" data-tooltip="Authenticate via Discord network">Login with Discord</button>
                     <div class="spinner" id="validateSpinner"></div>
                 </div>
             </div>
             <div class="category">
                 <div class="category-header" onclick="toggleCategory(this)">
-                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 8h8M8 4v8" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Webhook Info
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF9JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOfFxRUAAAAASUVORK5CYII=" alt="Webhook Profile Icon"> Webhook Profile
                 </div>
                 <div class="category-content" id="webhookProfile"></div>
             </div>
@@ -390,47 +428,41 @@
         <div id="send" class="page">
             <div class="category">
                 <div class="category-header" onclick="toggleCategory(this)">
-                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h12M2 8l4-4M2 8l4 4" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Send Message
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF1JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOf3xRYAAAAASUVORK5CYII=" alt="Message Sender Icon"> Message Sender
                 </div>
                 <div class="category-content active">
-                    <select id="destination" data-tooltip="Choose where to send">
+                    <select id="destination" data-tooltip="Select target webhook for transmission">
                         <option value="">Select Webhook</option>
                     </select>
-                    <select id="predefinedMessages" data-tooltip="Pick a preset message or type your own">
+                    <select id="predefinedMessages" data-tooltip="Choose a pre-coded payload">
                         <option value="">Custom Message</option>
-                        <option value="[EmuHook] Initiating cyber sequence... {user} at {time}">Cyber Sequence</option>
-                        <option value="[ALERT] System breach by {user}!">System Breach</option>
-                        <option value="[SYSTEM] Protocols engaged at {time}!">Protocols Engaged</option>
+                        <option value="> [EmuHook] Initiating cyber sequence...">Cyber Sequence</option>
+                        <option value="> [ALERT] Mainframe breach detected!">Mainframe Breach</option>
+                        <option value="> [SYSTEM] Override protocols engaged!">Override Protocols</option>
+                        <option value="> [TEST] Probing network defenses...">Network Probe</option>
+                        <option value="> [HACK] Accessing secure channels...">Secure Channels</option>
+                        <option value="> [SHADOW] Infiltrating data streams...">Data Infiltration</option>
                     </select>
-                    <div class="editor-toolbar">
-                        <button onclick="formatText('bold')" data-tooltip="Make text bold">𝐁</button>
-                        <button onclick="formatText('italic')" data-tooltip="Make text italic">𝐼</button>
-                        <button onclick="formatText('code')" data-tooltip="Format as code">💻</button>
-                    </div>
-                    <input type="text" id="message" placeholder="Type your message" data-tooltip="Enter your message">
-                    <input type="file" id="attachment" accept="image/*,text/*" data-tooltip="Attach an image or text file">
-                    <label><input type="checkbox" id="tts" data-tooltip="Read message aloud in Discord"> Text-to-Speech</label>
-                    <label><input type="checkbox" id="rainbowMessage" data-tooltip="Cycle colors and wave spacing"> Rainbow Effect</label>
-                    <input type="number" id="sendDelay" min="0" step="1" placeholder="Delay (seconds)" data-tooltip="Delay before sending">
+                    <div id="messageEditor" style="height: 200px;"></div>
+                    <input type="file" id="attachment" accept="image/*,video/*,application/pdf" data-tooltip="Upload attachment for message">
+                    <input type="number" id="sendDelay" min="0" step="1" placeholder="Delay (seconds)" data-tooltip="Schedule message delay">
                     <div class="category">
                         <div class="category-header" onclick="toggleCategory(this)">
-                            <svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 3h10v10H3z" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Embed Settings
+                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF5JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOcXhRYAAAAASUVORK5CYII=" alt="Embed Options Icon"> Embed Options
                         </div>
                         <div class="category-content">
-                            <input type="text" id="embedTitle" placeholder="Embed Title" data-tooltip="Title for embed">
-                            <input type="text" id="embedDescription" placeholder="Embed Description" data-tooltip="Description for embed">
-                            <input type="color" id="embedColor" value="#ff1a1a" data-tooltip="Embed color (ignored if Rainbow enabled)">
+                            <input type="text" id="embedTitle" placeholder="Embed Title" data-tooltip="Set embed title">
+                            <input type="text" id="embedDescription" placeholder="Embed Description" data-tooltip="Set embed description">
+                            <input type="color" id="embedColor" value="#ff1a1a" data-tooltip="Set embed color">
                         </div>
                     </div>
-                    <button onclick="sendMessage()" data-tooltip="Send the message">
-                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h12M2 8l4-4M2 8l4 4" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Send
-                    </button>
+                    <button onclick="sendMessage()" data-tooltip="Transmit message to target">Send</button>
                     <div class="spinner" id="sendSpinner"></div>
                 </div>
             </div>
             <div class="category">
                 <div class="category-header" onclick="toggleCategory(this)">
-                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 4h8v8H4z" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Message Log
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAGBJREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAP0W4uEAAAAASUVORK5CYII=" alt="Live Stream Icon"> Live Stream
                 </div>
                 <div class="category-content active" id="liveStream"></div>
             </div>
@@ -438,37 +470,35 @@
         <div id="spam" class="page">
             <div class="category">
                 <div class="category-header" onclick="toggleCategory(this)">
-                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h12M2 8l4-4M2 8l4 4" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Spam Messages
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAGFJREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAP4O3jEAAAAASUVORK5CYII=" alt="Spam Console Icon"> Spam Console
                 </div>
                 <div class="category-content active">
-                    <select id="spamDestination" data-tooltip="Choose where to send">
+                    <select id="spamDestination" data-tooltip="Select target webhook for spam">
                         <option value="">Select Webhook</option>
                     </select>
-                    <select id="spamPredefinedMessages" data-tooltip="Pick a preset or type your own">
+                    <select id="spamPredefinedMessages" data-tooltip="Choose a pre-coded spam payload">
                         <option value="">Custom Message</option>
-                        <option value="[EmuHook] Initiating cyber sequence... {user} at {time}">Cyber Sequence</option>
-                        <option value="[ALERT] System breach by {user}!">System Breach</option>
-                        <option value="[SYSTEM] Protocols engaged at {time}!">Protocols Engaged</option>
+                        <option value="> [EmuHook] Initiating cyber sequence...">Cyber Sequence</option>
+                        <option value="> [ALERT] Mainframe breach detected!">Mainframe Breach</option>
+                        <option value="> [SYSTEM] Override protocols engaged!">Override Protocols</option>
+                        <option value="> [TEST] Probing network defenses...">Network Probe</option>
+                        <option value="> [HACK] Accessing secure channels...">Secure Channels</option>
+                        <option value="> [SHADOW] Infiltrating data streams...">Data Infiltration</option>
                     </select>
-                    <input type="text" id="spamMessage" placeholder="Type your message" data-tooltip="Enter spam message">
-                    <input type="number" id="spamCount" min="1" max="50" placeholder="Number of messages" data-tooltip="How many messages to send (max 50)">
-                    <input type="number" id="spamDelay" min="0.5" step="0.1" placeholder="Delay (seconds)" data-tooltip="Delay between messages">
-                    <label><input type="checkbox" id="randomizeMessages" data-tooltip="Use random virus-themed messages"> Random Virus Messages</label>
-                    <label><input type="checkbox" id="spamTts" data-tooltip="Read messages aloud in Discord"> Text-to-Speech</label>
-                    <label><input type="checkbox" id="spamRainbowMessage" data-tooltip="Cycle colors and wave spacing"> Rainbow Effect</label>
+                    <div id="spamMessageEditor" style="height: 200px;"></div>
+                    <input type="number" id="spamCount" min="1" placeholder="Number of messages" data-tooltip="Set transmission count">
+                    <input type="number" id="spamDelay" min="0" step="0.1" placeholder="Delay (seconds)" data-tooltip="Set delay between transmissions">
+                    <input type="number" id="batchSize" min="1" placeholder="Batch Size" data-tooltip="Messages per batch">
+                    <label><input type="checkbox" id="randomizeMessages" data-tooltip="Randomize predefined messages"> Randomize Messages</label>
                     <div id="rateLimitStatus" class="neon">Rate Limit: 100%</div>
-                    <button onclick="spamMessages()" data-tooltip="Start spamming">
-                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h12M2 8l4-4M2 8l4 4" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Start
-                    </button>
-                    <button onclick="cancelSpam()" data-tooltip="Stop spamming">
-                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 4l8 8M4 12l8-8" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Stop
-                    </button>
+                    <button onclick="spamMessages()" data-tooltip="Initiate spam sequence">Start Spamming</button>
+                    <button onclick="cancelSpam()" data-tooltip="Halt spam sequence">Cancel</button>
                     <div class="spinner" id="spamSpinner"></div>
                 </div>
             </div>
             <div class="category">
                 <div class="category-header" onclick="toggleCategory(this)">
-                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 4h8v8H4z" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Spam Log
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAGBJREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAP0W4uEAAAAASUVORK5CYII=" alt="Live Stream Icon"> Live Stream
                 </div>
                 <div class="category-content active" id="liveStreamSpam"></div>
             </div>
@@ -476,7 +506,7 @@
         <div id="saved" class="page">
             <div class="category">
                 <div class="category-header" onclick="toggleCategory(this)">
-                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 4h12v8H2z" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Saved Webhooks
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF9JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOfFxRUAAAAASUVORK5CYII=" alt="Saved Webhooks Icon"> Saved Webhooks
                 </div>
                 <div class="category-content active" id="savedWebhooks"></div>
             </div>
@@ -484,7 +514,7 @@
         <div id="history" class="page">
             <div class="category">
                 <div class="category-header" onclick="toggleCategory(this)">
-                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 2v6h4" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Message History
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF5JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOcXhRYAAAAASUVORK5CYII=" alt="Message History Icon"> Message History
                 </div>
                 <div class="category-content active" id="messageHistory"></div>
             </div>
@@ -492,36 +522,38 @@
         <div id="settings" class="page">
             <div class="category">
                 <div class="category-header" onclick="toggleCategory(this)">
-                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 2v12M2 8h12" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Settings
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF1JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOf3xRYAAAAASUVORK5CYII=" alt="System Settings Icon"> System Settings
                 </div>
                 <div class="category-content active">
-                    <label>Cursor Trail Intensity:</label>
-                    <input type="range" id="cursorTrailIntensity" min="0.1" max="1" step="0.1" value="0.7" data-tooltip="Adjust cursor trail brightness">
-                    <label>Cursor Trail Color:</label>
-                    <input type="color" id="cursorTrailColor" value="#ff4d4d" data-tooltip="Pick cursor trail color">
-                    <label>Particle Density:</label>
-                    <input type="range" id="particleDensity" min="50" max="200" step="10" value="100" data-tooltip="Adjust background particle count">
-                    <label>Particle Speed:</label>
-                    <input type="range" id="particleSpeed" min="1" max="8" step="1" value="4" data-tooltip="Adjust particle movement speed">
-                    <label>Sound Volume:</label>
-                    <input type="range" id="soundVolume" min="0" max="1" step="0.1" value="0.3" data-tooltip="Adjust beep volume">
-                    <select id="theme" data-tooltip="Choose UI color theme">
-                        <option value="theme-dark-red">Dark Red</option>
-                        <option value="theme-neon-green">Neon Green</option>
-                        <option value="theme-cyber-blue">Cyber Blue</option>
-                    </select>
-                    <button onclick="applySettings()" data-tooltip="Apply changes">
-                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 8l3 3 5-5" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Apply
-                    </button>
-                    <button onclick="clearSavedWebhooks()" data-tooltip="Delete all saved webhooks">
-                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 4l8 8M4 12l8-8" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Clear Webhooks
-                    </button>
+                    <label>Neon Intensity:</label>
+                    <input type="range" id="neonIntensity" min="0.5" max="2" step="0.1" value="1" data-tooltip="Adjust neon glow strength">
+                    <label>Animation Speed:</label>
+                    <input type="range" id="animationSpeed" min="0.5" max="2" step="0.1" value="1" data-tooltip="Adjust animation velocity">
+                    <label>Theme Color:</label>
+                    <input type="color" id="themeColor" value="#ff1a1a" data-tooltip="Set primary theme color">
+                    <label><input type="checkbox" id="darkMode" checked data-tooltip="Toggle dark/light mode"> Dark Mode</label>
+                    <button onclick="clearSavedWebhooks()" data-tooltip="Erase all saved webhooks">Clear Saved Webhooks</button>
+                    <button onclick="logout()" data-tooltip="Terminate session">Logout</button>
+                </div>
+            </div>
+            <div class="category">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF1JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOf3xRYAAAAASUVORK5CYII=" alt="System Diagnostics Icon"> System Diagnostics
+                </div>
+                <div class="category-content" id="diagnostics"></div>
+            </div>
+            <div class="category">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF1JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOf3xRYAAAAASUVORK5CYII=" alt="Terminal Icon"> Terminal
+                </div>
+                <div class="category-content active">
+                    <div id="terminal" style="height: 200px; background: rgba(10, 10, 10, 0.8); border: 1px solid var(--primary-color); padding: 10px; border-radius: 5px;"></div>
                 </div>
             </div>
         </div>
     </div>
-    <button class="log-toggle" onclick="toggleLogWindow()" data-tooltip="Show/hide logs">
-        <svg width="20" height="20" viewBox="0 0 20 20"><path d="M4 4h12v12H4z" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg>
+    <button class="log-toggle" onclick="toggleLogWindow()" data-tooltip="View system logs">
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAF5JREFUOE9jZKAyYCBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYPgDAOcXhRYAAAAASUVORK5CYII=" alt="Log Icon">
     </button>
     <div class="log-window" id="logWindow">
         <div class="log-header">
@@ -532,90 +564,103 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/howler@2.2.3/dist/howler.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
     <script>
         // Particles.js
-        let particleConfig = {
+        particlesJS('particles-js', {
             particles: {
-                number: { value: 100 },
+                number: { value: 200, density: { enable: true, value_area: 800 } },
                 color: { value: '#ff1a1a' },
-                shape: { type: 'circle' },
-                opacity: { value: 0.7 },
-                size: { value: 4 },
-                move: { enable: true, speed: 4 }
+                shape: { type: ['circle', 'triangle', 'edge', 'star'] },
+                opacity: { value: 0.8, random: true },
+                size: { value: 5, random: true },
+                line_linked: { enable: true, distance: 100, color: '#ff1a1a', opacity: 0.6, width: 2 },
+                move: { enable: true, speed: 5, direction: 'none', random: true }
+            },
+            interactivity: {
+                detect_on: 'canvas',
+                events: { onhover: { enable: true, mode: 'repulse' }, onclick: { enable: true, mode: 'push' } },
+                modes: { repulse: { distance: 150 }, push: { particles_nb: 10 } }
             }
-        };
-        particlesJS('particles-js', particleConfig);
+        });
 
-        // Synth Sound
-        let audioCtx;
-        try {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        } catch (e) {
-            console.error('AudioContext initialization failed:', e);
-            log('Error: Audio not supported in this browser.');
+        // Three.js Holographic Effect
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('three-js').appendChild(renderer.domElement);
+        const geometry = new THREE.SphereGeometry(5, 32, 32);
+        const material = new THREE.MeshBasicMaterial({ color: 0xff1a1a, wireframe: true });
+        const sphere = new THREE.Mesh(geometry, material);
+        scene.add(sphere);
+        camera.position.z = 10;
+        function animateThree() {
+            requestAnimationFrame(animateThree);
+            sphere.rotation.x += 0.01;
+            sphere.rotation.y += 0.01;
+            renderer.render(scene, camera);
         }
+        animateThree();
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
 
-        function playSynthBeep() {
-            if (!audioCtx) return;
-            try {
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                oscillator.type = 'sawtooth';
-                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.1);
-                gainNode.gain.setValueAtTime(document.getElementById('soundVolume')?.value || 0.3, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.2);
-            } catch (e) {
-                log('Audio error: ' + e.message);
+        // Matrix Rain
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        canvas.height = window.innerHeight;
+        canvas.width = window.innerWidth;
+        const chars = '0101EMUH00K1010ハッカーマトリックス';
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(0);
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#ff1a1a';
+            ctx.font = fontSize + 'px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars.charAt(Math.random() * chars.length);
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
             }
         }
+        setInterval(drawMatrix, 33);
 
-        // Cursor Trail
-        const trails = [];
-        for (let i = 0; i < 12; i++) {
-            const trail = document.createElement('div');
-            trail.className = 'cursor-trail';
-            document.body.appendChild(trail);
-            trails.push(trail);
-        }
-        let trailIndex = 0;
-        let lastX = 0, lastY = 0;
-        document.addEventListener('mousemove', (e) => {
-            const dx = e.clientX - lastX;
-            const dy = e.clientY - lastY;
-            if (Math.sqrt(dx * dx + dy * dy) > 4) {
-                const trail = trails[trailIndex];
-                trail.style.left = e.clientX + 'px';
-                trail.style.top = e.clientY + 'px';
-                trail.style.opacity = document.getElementById('cursorTrailIntensity')?.value || 0.7;
-                trail.style.background = document.getElementById('cursorTrailColor')?.value || '#ff4d4d';
-                trailIndex = (trailIndex + 1) % trails.length;
-                lastX = e.clientX;
-                lastY = e.clientY;
-            }
+        // Sound Effects
+        const beep = new Howl({ src: ['https://cdn.pixabay.com/audio/2022/03/10/audio_6b1c7f6b1f.mp3'], volume: 0.3 });
+
+        // Quill Editors
+        const messageEditor = new Quill('#messageEditor', {
+            theme: 'snow',
+            modules: { toolbar: [['bold', 'italic', 'code-block']] }
+        });
+        const spamMessageEditor = new Quill('#spamMessageEditor', {
+            theme: 'snow',
+            modules: { toolbar: [['bold', 'italic', 'code-block']] }
         });
 
         // State
         let webhookUrl = '';
         let isSpamming = false;
-        let savedWebhooks = JSON.parse(localStorage.getItem('webhooks') || '[]');
+        let savedWebhooks = JSON.parse(localStorage.getItem('webhooks') || '[]').map(w => ({
+            name: w.name,
+            url: CryptoJS.AES.decrypt(w.url, 'secret-key').toString(CryptoJS.enc.Utf8)
+        }));
         let messageHistory = JSON.parse(localStorage.getItem('messageHistory') || '[]');
-        let user = { username: 'EmuHook' };
+        let user = null;
         let messagesSent = 0;
         const startTime = Date.now();
-        const rainbowColors = [0xff0000, 0xff9900, 0xffff00, 0x00ff00, 0x00ffff, 0x0000ff, 0xff00ff];
-        const virusNames = [
-            'Quantum Worm', 'Neon Plague', 'Crypto Spike', 'Gizmo Virus',
-            'Shadow Byte', 'Pulse Blight', 'Hex Fever', 'Vortex Hack',
-            'Binary Doom', 'Ghost Code'
-        ];
 
         function log(message) {
-            playSynthBeep();
+            beep.play();
             const logContent = document.getElementById('logContent');
             const entry = document.createElement('div');
             entry.textContent = `> [${new Date().toLocaleTimeString()}] ${message}`;
@@ -624,92 +669,131 @@
         }
 
         function updateLiveStream(message, streamId = 'liveStream') {
-            playSynthBeep();
             const stream = document.getElementById(streamId);
             const entry = document.createElement('div');
-            entry.textContent = `> [${new Date().toLocaleTimeString()}] ${user.username}: ${message}`;
+            entry.textContent = `> [${new Date().toLocaleTimeString()}] ${user ? user.username : 'EmuHook'}: ${message}`;
+            entry.style.animation = 'fadeIn 0.5s';
             stream.appendChild(entry);
             stream.scrollTop = stream.scrollHeight;
-            messageHistory.push({ time: new Date().toLocaleTimeString(), message, sender: user.username });
+            messageHistory.push({ time: new Date().toLocaleTimeString(), message, sender: user ? user.username : 'EmuHook' });
             localStorage.setItem('messageHistory', JSON.stringify(messageHistory));
             updateMessageHistory();
             messagesSent++;
-            updateStatusBar();
+            updateDashboard();
         }
 
-        function updateStatusBar() {
+        function updateDashboard() {
             const uptime = Math.floor((Date.now() - startTime) / 1000);
-            document.getElementById('statusBar').textContent = `Uptime: ${uptime}s | Sent: ${messagesSent} | Webhooks: ${savedWebhooks.length}`;
+            document.getElementById('statusBar').textContent = `Uptime: ${uptime}s | Messages Sent: ${messagesSent} | Webhooks: ${savedWebhooks.length}`;
+            document.getElementById('webhookCount').textContent = savedWebhooks.length;
+            document.getElementById('messagesSent').textContent = messagesSent;
+            document.getElementById('uptime').textContent = `${uptime}s`;
+            document.getElementById('rateLimit').textContent = `Rate Limit: ${Math.floor(100 - (messagesSent % 100) / 100 * 50)}%`;
         }
 
         function showPage(pageId) {
-            playSynthBeep();
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.querySelectorAll('.nav-bar button').forEach(btn => btn.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             document.querySelector(`button[onclick="showPage('${pageId}')"]`).classList.add('active');
+            beep.play();
         }
 
         function toggleCategory(header) {
-            playSynthBeep();
-            header.nextElementSibling.classList.toggle('active');
+            const content = header.nextElementSibling;
+            content.classList.toggle('active');
+            beep.play();
         }
 
         function toggleLogWindow() {
-            playSynthBeep();
-            document.getElementById('logWindow').classList.toggle('active');
+            const logWindow = document.getElementById('logWindow');
+            logWindow.classList.toggle('active');
+            beep.play();
+        }
+
+        // Draggable Log Window
+        const logWindow = document.getElementById('logWindow');
+        const logHeader = logWindow.querySelector('.log-header');
+        let isDragging = false;
+        let currentX, currentY, xOffset = 0, yOffset = 0;
+
+        logHeader.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            currentX = e.clientX - xOffset;
+            currentY = e.clientY - yOffset;
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                document.removeEventListener('mousemove', onDrag);
+            });
+        });
+
+        function onDrag(e) {
+            if (isDragging) {
+                xOffset = e.clientX - currentX;
+                yOffset = e.clientY - currentY;
+                logWindow.style.right = `${20 - xOffset}px`;
+                logWindow.style.bottom = `${80 - yOffset}px`;
+            }
         }
 
         async function validateWebhook() {
-            playSynthBeep();
             const url = document.getElementById('webhookUrl').value.trim();
-            if (!url) return log('Error: Enter a webhook URL.');
+            if (!url) {
+                log('Error: Webhook URL required.');
+                return;
+            }
             document.getElementById('validateSpinner').classList.add('active');
             try {
-                const response = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
+                const response = await fetchWithRetry(url, { method: 'GET' });
                 document.getElementById('validateSpinner').classList.remove('active');
-                if (response.ok) {
+                if (response.status === 200) {
                     webhookUrl = url;
-                    log('Webhook is valid.');
+                    log('Webhook validated successfully.');
                     fetchWebhookProfile(url);
                     updateDestinationSelects();
                 } else {
-                    log(`Invalid webhook: HTTP ${response.status}`);
+                    log('Invalid webhook URL.');
                 }
             } catch (error) {
                 document.getElementById('validateSpinner').classList.remove('active');
-                log('Webhook check failed: ' + error.message);
+                log('Validation error: ' + error.message);
             }
         }
 
         async function fetchWebhookProfile(url) {
             try {
-                const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                const response = await fetchWithRetry(url);
                 const data = await response.json();
                 const avatarUrl = data.avatar ? `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=64` : null;
-                document.getElementById('webhookProfile').innerHTML = `
-                    ${avatarUrl ? `<img src="${avatarUrl}" class="webhook-avatar">` : ''}
-                    <p class="neon">Webhook: ${data.name || 'Unknown'}</p>
-                    <p class="neon">Channel: ${data.channel_id || 'Unknown'}</p>
+                const profileDiv = document.getElementById('webhookProfile');
+                profileDiv.innerHTML = `
+                    ${avatarUrl ? `<img src="${avatarUrl}" class="webhook-avatar" alt="Webhook Avatar">` : ''}
+                    <p class="neon">Webhook Name: ${data.name || 'N/A'}</p>
+                    <p class="neon">Channel ID: ${data.channel_id || 'N/A'}</p>
+                    <p class="neon">Guild ID: ${data.guild_id || 'N/A'}</p>
                 `;
             } catch (error) {
-                log('Webhook info fetch failed: ' + error.message);
+                log('Profile fetch error: ' + error.message);
             }
         }
 
         function saveWebhook() {
-            playSynthBeep();
             const url = document.getElementById('webhookUrl').value.trim();
             const name = document.getElementById('webhookName').value.trim() || `Webhook ${savedWebhooks.length + 1}`;
-            if (!webhookUrl) return log('Error: Validate a webhook first.');
+            if (!webhookUrl) {
+                log('Error: No valid webhook to save.');
+                return;
+            }
             if (!savedWebhooks.some(w => w.url === webhookUrl)) {
-                savedWebhooks.push({ name, url: webhookUrl });
+                const encryptedUrl = CryptoJS.AES.encrypt(webhookUrl, 'secret-key').toString();
+                savedWebhooks.push({ name, url: encryptedUrl });
                 localStorage.setItem('webhooks', JSON.stringify(savedWebhooks));
-                log(`Saved webhook: ${name}`);
+                log(`Webhook saved as "${name}".`);
                 updateSavedWebhooks();
                 updateDestinationSelects();
             } else {
-                log('Webhook already saved.');
+                log('Webhook already exists in storage.');
             }
         }
 
@@ -717,38 +801,36 @@
             const savedDiv = document.getElementById('savedWebhooks');
             savedDiv.innerHTML = '';
             savedWebhooks.forEach(({ name, url }) => {
+                const decryptedUrl = CryptoJS.AES.decrypt(url, 'secret-key').toString(CryptoJS.enc.Utf8);
                 const div = document.createElement('div');
                 div.className = 'saved-webhook';
-                div.innerHTML = `<span>${name}: ${url}</span>
-                    <button onclick="loadWebhook('${url}')"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 8h8M8 4v8" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Load</button>
-                    <button onclick="deleteWebhook('${url}')"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 4l8 8M4 12l8-8" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Delete</button>`;
+                div.innerHTML = `<span>${name}: ${decryptedUrl}</span>
+                                 <button onclick="loadWebhook('${decryptedUrl}')" data-tooltip="Load this webhook">Load</button>
+                                 <button onclick="deleteWebhook('${decryptedUrl}')" data-tooltip="Delete this webhook">Delete</button>`;
                 savedDiv.appendChild(div);
             });
         }
 
         function loadWebhook(url) {
-            playSynthBeep();
             webhookUrl = url;
             document.getElementById('webhookUrl').value = url;
-            log('Loaded webhook: ' + url);
+            log('Webhook loaded: ' + url);
             fetchWebhookProfile(url);
             updateDestinationSelects();
         }
 
         function deleteWebhook(url) {
-            playSynthBeep();
-            savedWebhooks = savedWebhooks.filter(w => w.url !== url);
+            savedWebhooks = savedWebhooks.filter(w => CryptoJS.AES.decrypt(w.url, 'secret-key').toString(CryptoJS.enc.Utf8) !== url);
             localStorage.setItem('webhooks', JSON.stringify(savedWebhooks));
-            log('Deleted webhook: ' + url);
+            log('Webhook deleted: ' + url);
             updateSavedWebhooks();
             updateDestinationSelects();
         }
 
         function clearSavedWebhooks() {
-            playSynthBeep();
             savedWebhooks = [];
             localStorage.setItem('webhooks', JSON.stringify(savedWebhooks));
-            log('Cleared all webhooks.');
+            log('All saved webhooks cleared.');
             updateSavedWebhooks();
             updateDestinationSelects();
         }
@@ -759,6 +841,7 @@
             messageHistory.forEach(({ time, message, sender }) => {
                 const div = document.createElement('div');
                 div.textContent = `> [${time}] ${sender}: ${message}`;
+                div.style.animation = 'fadeIn 0.5s';
                 historyDiv.appendChild(div);
             });
         }
@@ -768,168 +851,279 @@
             selects.forEach(select => {
                 select.innerHTML = '<option value="">Select Webhook</option>';
                 savedWebhooks.forEach(({ name, url }) => {
+                    const decryptedUrl = CryptoJS.AES.decrypt(url, 'secret-key').toString(CryptoJS.enc.Utf8);
                     const option = document.createElement('option');
-                    option.value = `webhook:${url}`;
-                    option.textContent = `Webhook: ${name}`;
+                    option.value = decryptedUrl;
+                    option.textContent = name;
                     select.appendChild(option);
                 });
+                if (webhookUrl) {
+                    select.value = webhookUrl;
+                }
             });
         }
 
-        function formatText(type) {
-            playSynthBeep();
-            const input = document.getElementById('message');
-            const start = input.selectionStart;
-            const end = input.selectionEnd;
-            const selected = input.value.substring(start, end);
-            if (!selected) return log('Error: Select text to format.');
-            const formatted = type === 'bold' ? `**${selected}**` : type === 'italic' ? `*${selected}*` : `\`\`\`${selected}\`\`\``;
-            input.value = input.value.substring(0, start) + formatted + input.value.substring(end);
-            log(`Formatted text as ${type}.`);
-        }
-
-        function applyWaveSpacing(message, index) {
-            const indent = Math.round(Math.sin(index / 3) * 15);
-            return ' '.repeat(Math.max(0, indent)) + message;
-        }
-
         async function sendMessage() {
-            playSynthBeep();
             const destination = document.getElementById('destination').value;
-            let message = document.getElementById('predefinedMessages').value || document.getElementById('message').value;
-            const tts = document.getElementById('tts').checked;
-            const rainbow = document.getElementById('rainbowMessage').checked;
+            const message = messageEditor.root.innerHTML;
+            const predefined = document.getElementById('predefinedMessages').value;
             const delay = parseInt(document.getElementById('sendDelay').value) || 0;
-            const file = document.getElementById('attachment').files[0];
-            const embed = {
-                title: document.getElementById('embedTitle').value || undefined,
-                description: document.getElementById('embedDescription').value || undefined,
-                color: rainbow ? rainbowColors[Math.floor(Math.random() * rainbowColors.length)] : parseInt(document.getElementById('embedColor').value.replace('#', ''), 16) || undefined
-            };
-
-            if (!destination || (!message && !file && !embed.title && !embed.description)) {
-                return log('Error: Choose a webhook and add a message or file.');
+            const embedTitle = document.getElementById('embedTitle').value.trim();
+            const embedDescription = document.getElementById('embedDescription').value.trim();
+            const embedColor = document.getElementById('embedColor').value;
+            const attachment = document.getElementById('attachment').files[0];
+            if (predefined) messageEditor.root.innerHTML = predefined;
+            if (!destination) {
+                log('Error: Select a webhook.');
+                return;
             }
-
-            message = message.replace('{user}', user.username).replace('{time}', new Date().toLocaleTimeString());
-            if (rainbow) message = applyWaveSpacing(message, messagesSent);
-
+            if (!message && !embedTitle && !embedDescription && !attachment) {
+                log('Error: Message, embed, or attachment required.');
+                return;
+            }
             document.getElementById('sendSpinner').classList.add('active');
             try {
-                if (destination.startsWith('webhook:')) {
-                    const url = destination.replace('webhook:', '');
-                    const payload = {
-                        content: message,
-                        tts: tts,
-                        embeds: embed.title || embed.description ? [embed] : undefined
-                    };
-                    const formData = new FormData();
-                    formData.append('payload_json', JSON.stringify(payload));
-                    if (file) formData.append('file', file);
-                    await new Promise(resolve => setTimeout(resolve, delay * 1000));
-                    const response = await fetch(url, {
+                const formData = new FormData();
+                formData.append('payload_json', JSON.stringify({
+                    content: message,
+                    username: user ? user.username : 'EmuHook',
+                    embeds: embedTitle || embedDescription ? [{
+                        title: embedTitle || undefined,
+                        description: embedDescription || undefined,
+                        color: parseInt(embedColor.replace('#', ''), 16)
+                    }] : []
+                }));
+                if (attachment) formData.append('file', attachment);
+                setTimeout(async () => {
+                    const response = await fetchWithRetry(destination, {
                         method: 'POST',
-                        body: formData,
-                        headers: { 'Accept': 'application/json' }
+                        body: formData
                     });
-                    if (response.ok) {
-                        log('Message sent successfully.');
-                        updateLiveStream(message);
+                    document.getElementById('sendSpinner').classList.remove('active');
+                    if (response.status === 204) {
+                        log('Message transmitted successfully.');
+                        updateLiveStream(message || (embedTitle + ': ' + embedDescription));
                     } else {
-                        log(`Send failed: HTTP ${response.status}`);
+                        log('Transmission failed.');
                     }
-                }
+                }, delay * 1000);
             } catch (error) {
-                log('Send error: ' + error.message);
-            } finally {
                 document.getElementById('sendSpinner').classList.remove('active');
+                log('Transmission error: ' + error.message);
             }
         }
 
         async function spamMessages() {
-            if (isSpamming) return log('Error: Spam already running.');
-            playSynthBeep();
             const destination = document.getElementById('spamDestination').value;
-            let message = document.getElementById('spamPredefinedMessages').value || document.getElementById('spamMessage').value;
-            const count = Math.min(parseInt(document.getElementById('spamCount').value) || 1, 50);
-            const delay = Math.max(parseFloat(document.getElementById('spamDelay').value) || 0.5, 0.5) * 1000;
+            let message = spamMessageEditor.root.innerHTML;
+            const predefined = document.getElementById('spamPredefinedMessages').value;
+            const count = parseInt(document.getElementById('spamCount').value);
+            const delay = parseFloat(document.getElementById('spamDelay').value);
+            const batchSize = parseInt(document.getElementById('batchSize').value) || 1;
             const randomize = document.getElementById('randomizeMessages').checked;
-            const tts = document.getElementById('spamTts').checked;
-            const rainbow = document.getElementById('spamRainbowMessage').checked;
-            if (!destination || (!message && !randomize)) return log('Error: Choose a webhook and add a message.');
+            const predefinedMessages = [
+                '> [EmuHook] Initiating cyber sequence...',
+                '> [ALERT] Mainframe breach detected!',
+                '> [SYSTEM] Override protocols engaged!',
+                '> [TEST] Probing network defenses...',
+                '> [HACK] Accessing secure channels...',
+                '> [SHADOW] Infiltrating data streams...'
+            ];
+
+            if (!destination) {
+                log('Error: Select a webhook.');
+                return;
+            }
+            if (!message && !predefined && !randomize) {
+                log('Error: Message or predefined required.');
+                return;
+            }
+            if (isNaN(count) || count < 1 || isNaN(delay) || delay < 0 || isNaN(batchSize) || batchSize < 1) {
+                log('Error: Invalid count, delay, or batch size.');
+                return;
+            }
 
             isSpamming = true;
+            log(`Initiating ${count} transmissions in batches of ${batchSize} with ${delay}s delay...`);
             document.getElementById('spamSpinner').classList.add('active');
-            let sent = 0;
 
-            try {
-                for (let i = 0; i < count && isSpamming; i++) {
-                    let finalMessage = message;
-                    if (randomize) {
-                        const virus = virusNames[Math.floor(Math.random() * virusNames.length)];
-                        finalMessage = `[ALERT] Server destruct initiated by ${virus}!`;
-                    }
-                    finalMessage = finalMessage.replace('{user}', user.username).replace('{time}', new Date().toLocaleTimeString());
-                    if (rainbow) finalMessage = applyWaveSpacing(finalMessage, sent);
-
-                    const url = destination.replace('webhook:', '');
-                    const payload = {
-                        content: finalMessage,
-                        tts: tts,
-                        embeds: rainbow ? [{ color: rainbowColors[sent % rainbowColors.length] }] : undefined
-                    };
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        body: JSON.stringify(payload),
-                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
-                    });
-                    if (response.ok) {
-                        updateLiveStream(finalMessage, 'liveStreamSpam');
-                        sent++;
-                        document.getElementById('rateLimitStatus').textContent = `Rate Limit: ${Math.round((1 - sent / count) * 100)}%`;
-                        log(`Spam message ${sent}/${count} sent.`);
-                    } else {
-                        log(`Spam failed: HTTP ${response.status}`);
-                        if (response.status === 429) {
-                            log('Rate limit hit, stopping spam.');
-                            break;
+            for (let i = 1; i <= count && isSpamming; i += batchSize) {
+                const batchCount = Math.min(batchSize, count - i + 1);
+                for (let j = 0; j < batchCount && isSpamming; j++) {
+                    const msg = randomize ? predefinedMessages[Math.floor(Math.random() * predefinedMessages.length)] : (predefined || message);
+                    try {
+                        const response = await fetchWithRetry(destination, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ content: msg, username: user ? user.username : 'EmuHook' })
+                        });
+                        if (response.status === 204) {
+                            log(`Transmitted message ${i + j}/${count}`);
+                            updateLiveStream(msg, 'liveStreamSpam');
+                            document.getElementById('rateLimitStatus').textContent = `Rate Limit: ${Math.floor(100 - (i / count) * 50)}%`;
+                        } else {
+                            log(`Failed to transmit message ${i + j}.`);
+                            isSpamming = false;
                         }
+                    } catch (error) {
+                        log('Transmission error: ' + error.message);
+                        isSpamming = false;
                     }
-                    await new Promise(resolve => setTimeout(resolve, delay));
                 }
-            } catch (error) {
-                log('Spam error: ' + error.message);
-            } finally {
-                isSpamming = false;
-                document.getElementById('spamSpinner').classList.remove('active');
-                log('Spam completed.');
+                if (i + batchSize <= count && isSpamming) {
+                    await new Promise(resolve => setTimeout(resolve, delay * 1000));
+                }
             }
+            document.getElementById('spamSpinner').classList.remove('active');
+            if (isSpamming) {
+                log('Spam sequence completed.');
+            }
+            isSpamming = false;
         }
 
         function cancelSpam() {
-            playSynthBeep();
             isSpamming = false;
             document.getElementById('spamSpinner').classList.remove('active');
-            log('Spam stopped.');
+            log('Spam sequence terminated.');
         }
 
-        function applySettings() {
-            playSynthBeep();
-            const theme = document.getElementById('theme').value;
-            document.body.className = theme;
-            particleConfig.particles.color.value = theme === 'theme-neon-green' ? '#00ff00' : theme === 'theme-cyber-blue' ? '#00b7eb' : '#ff1a1a';
-            particleConfig.particles.number.value = parseInt(document.getElementById('particleDensity').value);
-            particleConfig.particles.move.speed = parseInt(document.getElementById('particleSpeed').value);
-            particlesJS('particles-js', particleConfig);
-            log('Settings applied.');
+        async function fetchWithRetry(url, options, retries = 3) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    return response;
+                } catch (error) {
+                    if (i === retries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+                }
+            }
         }
+
+        // Discord OAuth2
+        function loginWithDiscord() {
+            const clientId = 'YOUR_CLIENT_ID'; // Replace with your Discord app client ID
+            const redirectUri = encodeURIComponent(window.location.origin);
+            const scope = 'identify';
+            window.location.href = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}`;
+        }
+
+        async function handleOAuthCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            if (code) {
+                try {
+                    const response = await fetchWithRetry('https://discord.com/api/oauth2/token', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({
+                            client_id: 'YOUR_CLIENT_ID', // Replace with your client ID
+                            client_secret: 'YOUR_CLIENT_SECRET', // Replace with your client secret
+                            grant_type: 'authorization_code',
+                            code,
+                            redirect_uri: window.location.origin
+                        })
+                    });
+                    const tokenData = await response.json();
+                    if (tokenData.access_token) {
+                        const userResponse = await fetchWithRetry('https://discord.com/api/users/@me', {
+                            headers: { Authorization: `Bearer ${tokenData.access_token}` }
+                        });
+                        user = await userResponse.json();
+                        document.getElementById('userInfo').textContent = `Operative: ${user.username}#${user.discriminator}`;
+                        log(`Authenticated as ${user.username}`);
+                        history.replaceState(null, '', window.location.pathname);
+                    }
+                } catch (error) {
+                    log('OAuth2 error: ' + error.message);
+                }
+            }
+        }
+
+        function logout() {
+            user = null;
+            document.getElementById('userInfo').textContent = 'Not Logged In';
+            log('Session terminated.');
+        }
+
+        // Settings
+        function applySettings() {
+            const neonIntensity = document.getElementById('neonIntensity').value;
+            const animationSpeed = document.getElementById('animationSpeed').value;
+            const themeColor = document.getElementById('themeColor').value;
+            const darkMode = document.getElementById('darkMode').checked;
+            document.documentElement.style.setProperty('--neon-intensity', neonIntensity);
+            document.documentElement.style.setProperty('--animation-speed', animationSpeed);
+            document.documentElement.style.setProperty('--primary-color', themeColor);
+            document.body.style.background = darkMode ? '#0a0a0a' : '#f0f0f0';
+            document.documentElement.style.setProperty('--secondary-color', darkMode ? '#0a0a0a' : '#f0f0f0');
+            material.color.set(themeColor);
+            log('System settings updated.');
+        }
+
+        // Diagnostics
+        function updateDiagnostics() {
+            const diagnostics = document.getElementById('diagnostics');
+            diagnostics.innerHTML = `
+                <p class="neon">System Status: Online</p>
+                <p class="neon">CPU Load: ${Math.floor(Math.random() * 50)}%</p>
+                <p class="neon">Memory Usage: ${Math.floor(Math.random() * 80)}%</p>
+                <p class="neon">Network Latency: ${Math.floor(Math.random() * 100)}ms</p>
+            `;
+        }
+
+        // Terminal
+        const terminal = document.getElementById('terminal');
+        terminal.contentEditable = true;
+        terminal.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const command = terminal.textContent.trim();
+                terminal.textContent = '';
+                log(`Executing command: ${command}`);
+                if (command === 'clear') {
+                    document.getElementById('logContent').innerHTML = '';
+                } else if (command === 'status') {
+                    updateDiagnostics();
+                } else {
+                    log('Unknown command. Try "clear" or "status".');
+                }
+            }
+        });
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey) {
+                switch (e.key) {
+                    case '0': showPage('dashboard'); break;
+                    case '1': showPage('home'); break;
+                    case '2': showPage('send'); break;
+                    case '3': showPage('spam'); break;
+                    case '4': showPage('saved'); break;
+                    case '5': showPage('history'); break;
+                    case '6': showPage('settings'); break;
+                }
+            }
+        });
 
         // Initialize
         updateSavedWebhooks();
-        updateMessageHistory();
         updateDestinationSelects();
-        updateStatusBar();
-        setInterval(updateStatusBar, 1000);
+        updateMessageHistory();
+        updateDiagnostics();
+        updateDashboard();
+        handleOAuthCallback();
+        document.getElementById('predefinedMessages').addEventListener('change', () => {
+            messageEditor.root.innerHTML = document.getElementById('predefinedMessages').value;
+        });
+        document.getElementById('spamPredefinedMessages').addEventListener('change', () => {
+            spamMessageEditor.root.innerHTML = document.getElementById('spamPredefinedMessages').value;
+        });
+        document.getElementById('neonIntensity').addEventListener('input', applySettings);
+        document.getElementById('animationSpeed').addEventListener('input', applySettings);
+        document.getElementById('themeColor').addEventListener('input', applySettings);
+        document.getElementById('darkMode').addEventListener('change', applySettings);
+        setInterval(updateDiagnostics, 5000);
+        setInterval(updateDashboard, 1000);
     </script>
 </body>
 </html>
