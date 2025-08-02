@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EmuHook: Cyber Terminal v6.9</title>
+    <title>EmuHook: Cyber Terminal v7.0</title>
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAALFJREFUWEftl8sNgzAMRF8c7H8lc7B7YfU6e2gEy6N48mTqkrBAIQiCIAiCIAiCIAiCIAiCIAiCIAiC4B/3eAdagKXF9z6Samap9dZYd95SaTmbT2u0mc6m8/F0MZtP5+P5YjabT+fj8WI2n87H48VsPp2Px4vZfDofjxfz+XQ+nk/n4/FiNp/Op/PpfDqfj8eL2Xw6H48Xs/l0Pp5P5+Pxfj6fj+fT+Xg+n88v9oC6xQAAAABJRU5ErkJggg==">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
@@ -195,7 +195,7 @@
         .spinner.active {
             display: block;
         }
-        #liveStream, #liveStreamSpam, #messageHistory, #logContent, #terminal, #helpContent {
+        #liveStream, #liveStreamSpam, #messageHistory, #logContent, #terminal, #profileContent {
             background: rgba(10, 10, 10, 0.8);
             border: 1px solid var(--primary-color);
             padding: 10px;
@@ -220,7 +220,7 @@
             padding: 8px;
             border-bottom: 1px solid var(--primary-color);
         }
-        .webhook-avatar {
+        .webhook-avatar, .profile-avatar {
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -320,15 +320,15 @@
         .dashboard-card:hover {
             transform: scale(1.03);
         }
-        .help-section {
+        .profile-section {
             margin-bottom: 15px;
         }
-        .help-section h3 {
+        .profile-section h3 {
             font-size: 1.2em;
             margin-bottom: 5px;
             text-shadow: 0 0 8px var(--primary-color);
         }
-        .help-section p {
+        .profile-section p {
             margin: 5px 0;
         }
         @keyframes wave {
@@ -364,7 +364,7 @@
     <div class="matrix-rain"><canvas id="matrix"></canvas></div>
     <div class="hologram"></div>
     <div class="nav-bar">
-        <div class="logo"><i class="fas fa-plug"></i> EmuHook v6.9</div>
+        <div class="logo"><i class="fas fa-plug"></i> EmuHook v7.0</div>
         <button onclick="showPage('login')" class="active" data-tooltip="Ctrl+0: Log in"><i class="fab fa-discord"></i> Login</button>
         <button onclick="showPage('dashboard')" data-tooltip="Ctrl+1: View system stats"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
         <button onclick="showPage('home')" data-tooltip="Ctrl+2: Manage webhooks"><i class="fas fa-home"></i> Home</button>
@@ -373,7 +373,7 @@
         <button onclick="showPage('saved')" data-tooltip="Ctrl+5: View saved webhooks"><i class="fas fa-save"></i> Saved</button>
         <button onclick="showPage('history')" data-tooltip="Ctrl+6: Message history"><i class="fas fa-history"></i> History</button>
         <button onclick="showPage('settings')" data-tooltip="Ctrl+7: System settings"><i class="fas fa-cog"></i> Settings</button>
-        <button onclick="showPage('help')" data-tooltip="Ctrl+8: How to use EmuHook"><i class="fas fa-question-circle"></i> Help</button>
+        <button onclick="showPage('profile')" data-tooltip="Ctrl+8: View user profile"><i class="fas fa-user"></i> Profile</button>
     </div>
     <div class="container">
         <div class="status-bar" id="statusBar">System initializing...</div>
@@ -384,8 +384,10 @@
                 <div class="category-content active">
                     <p class="neon mb-2">Log in with Discord to access EmuHook.</p>
                     <button onclick="discordLogin()" data-tooltip="Authorize with Discord"><i class="fab fa-discord"></i> Log in with Discord</button>
-                    <label class="block text-sm neon mb-2 mt-2">Enter Discord Username (Temporary)</label>
+                    <label class="block text-sm neon mb-2 mt-2">Username</label>
                     <input type="text" id="loginUsername" placeholder="Enter your Discord username" data-tooltip="Your Discord username">
+                    <label class="block text-sm neon mb-2 mt-2">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password" data-tooltip="Your password">
                     <div class="flex gap-2 mt-2">
                         <button onclick="mockLogin()" data-tooltip="Log in (temporary mock)"><i class="fas fa-sign-in-alt"></i> Mock Login</button>
                     </div>
@@ -559,74 +561,21 @@
                 </div>
             </div>
         </div>
-        <div id="help" class="page">
+        <div id="profile" class="page">
             <div class="category">
-                <div class="category-header" onclick="toggleCategory(this)"><i class="fas fa-question-circle"></i> Help & Guide</div>
-                <div class="category-content active" id="helpContent">
-                    <div class="help-section">
-                        <h3 class="neon"><i class="fas fa-plug"></i> Welcome to EmuHook v6.9</h3>
-                        <p>EmuHook is a cyberpunk-themed Discord webhook tool for managing, sending, and testing webhooks with a sleek terminal interface.</p>
+                <div class="category-header" onclick="toggleCategory(this)"><i class="fas fa-user"></i> User Profile</div>
+                <div class="category-content active" id="profileContent">
+                    <div class="profile-section">
+                        <h3 class="neon"><i class="fas fa-user"></i> Profile Information</h3>
+                        <div class="flex items-center">
+                            <img id="profileAvatar" src="https://via.placeholder.com/40?text=User" class="profile-avatar" alt="User Avatar">
+                            <p id="profileUsername" class="neon">Username: Guest</p>
+                        </div>
+                        <p id="profileId" class="neon">User ID: N/A</p>
+                        <p id="profileJoinDate" class="neon">Join Date: N/A</p>
                     </div>
-                    <div class="help-section">
-                        <h3 class="neon"><i class="fab fa-discord"></i> Getting Started</h3>
-                        <p>- Log in with Discord on the Login page (Ctrl+0).</p>
-                        <p>- Navigate using the top bar or Ctrl+1 to Ctrl+8.</p>
-                        <p>- Hover over buttons and inputs for tooltips.</p>
-                    </div>
-                    <div class="help-section">
-                        <h3 class="neon"><i class="fas fa-tachometer-alt"></i> Dashboard</h3>
-                        <p>- View system stats: webhook count, messages sent, uptime, and rate limit.</p>
-                    </div>
-                    <div class="help-section">
-                        <h3 class="neon"><i class="fas fa-home"></i> Home</h3>
-                        <p>- Add and validate Discord webhook URLs.</p>
-                        <p>- Use "Validate" to check URLs, "Save" to store them, or "Clear" to reset inputs.</p>
-                    </div>
-                    <div class="help-section">
-                        <h3 class="neon"><i class="fas fa-paper-plane"></i> Send</h3>
-                        <p>- Send messages or files to a webhook with wave animations and confirmation flash.</p>
-                        <p>- Use "Clear Message" to reset the editor or "Preview Message" to see formatted output.</p>
-                        <p>- Add embeds with title, description, and color.</p>
-                    </div>
-                    <div class="help-section">
-                        <h3 class="neon"><i class="fas fa-bolt"></i> Spam</h3>
-                        <p>- Test webhooks with repeated messages.</p>
-                        <p>- Enable "Wave Mode" for perfectly timed sends (1s intervals).</p>
-                        <p>- Use "Clear Spam Message" to reset the editor.</p>
-                    </div>
-                    <div class="help-section">
-                        <h3 class="neon"><i class="fas fa-save"></i> Saved</h3>
-                        <p>- Manage saved webhooks: load or delete.</p>
-                        <p>- Use "Export" to download webhooks as JSON.</p>
-                    </div>
-                    <div class="help-section">
-                        <h3 class="neon"><i class="fas fa-history"></i> History</h3>
-                        <p>- Review sent messages with timestamps.</p>
-                    </div>
-                    <div class="help-section">
-                        <h3 class="neon"><i class="fas fa-cog"></i> Settings</h3>
-                        <p>- Customize neon intensity, animation speed, and theme color.</p>
-                        <p>- Use "Clear Webhooks" to remove all saved webhooks or "Reset Settings" to restore defaults.</p>
-                        <p>- Run terminal commands like "clear" (clear history) or "status" (system info).</p>
-                    </div>
-                    <div class="help-section">
-                        <h3 class="neon"><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h3>
-                        <p>- Ctrl+0: Login</p>
-                        <p>- Ctrl+1: Dashboard</p>
-                        <p>- Ctrl+2: Home</p>
-                        <p>- Ctrl+3: Send</p>
-                        <p>- Ctrl+4: Spam</p>
-                        <p>- Ctrl+5: Saved</p>
-                        <p>- Ctrl+6: History</p>
-                        <p>- Ctrl+7: Settings</p>
-                        <p>- Ctrl+8: Help</p>
-                    </div>
-                    <div class="help-section">
-                        <h3 class="neon"><i class="fas fa-tools"></i> Troubleshooting</h3>
-                        <p>- <strong>Webhook errors</strong>: Ensure URLs are valid Discord webhooks. Clear `localStorage` via "Clear Webhooks" if decryption errors occur.</p>
-                        <p>- <strong>Messages not sending</strong>: Check rate limits in Dashboard or logs for errors.</p>
-                        <p>- <strong>Animations missing</strong>: Verify browser compatibility and internet for CDN dependencies.</p>
-                        <p>- <strong>Login issues</strong>: Clear `localStorage` and try logging in again.</p>
+                    <div class="flex gap-2 mt-2">
+                        <button onclick="logout()" data-tooltip="Log out of EmuHook"><i class="fas fa-sign-out-alt"></i> Log Out</button>
                     </div>
                 </div>
             </div>
@@ -697,7 +646,7 @@
         function discordLogin() {
             const loginSpinner = document.getElementById('loginSpinner');
             if (loginSpinner) loginSpinner.classList.add('active');
-            const authUrl = 'https://discord.com/oauth2/authorize?client_id=1237165097747746946&redirect_uri=' + encodeURIComponent(window.location.href) + '&response_type=code&scope=identify';
+            const authUrl = 'https://discord.com/oauth2/authorize?client_id=1237165097747746946&permissions=2048&integration_type=0&scope=bot+applications.commands&redirect_uri=' + encodeURIComponent(window.location.href) + '&response_type=code';
             log('Redirecting to Discord for authentication...');
             setTimeout(() => {
                 window.location.href = authUrl;
@@ -706,15 +655,20 @@
 
         function mockLogin() {
             const usernameInput = document.getElementById('loginUsername');
+            const passwordInput = document.getElementById('loginPassword');
             const loginSpinner = document.getElementById('loginSpinner');
-            if (!usernameInput) {
-                log('Error: Username input not found.');
+            if (!usernameInput || !passwordInput) {
+                log('Error: Input fields not found.');
                 return;
             }
             const inputUsername = usernameInput.value.trim();
-            if (!inputUsername) {
-                log('Error: Username required.');
+            const inputPassword = passwordInput.value.trim();
+            if (!inputUsername || !inputPassword) {
+                log('Error: Username and password required.');
                 return;
+            }
+            if (inputPassword.length < 6) {
+                log('Warning: Password is weak (less than 6 characters).');
             }
             if (loginSpinner) loginSpinner.classList.add('active');
             setTimeout(() => {
@@ -723,10 +677,35 @@
                 localStorage.setItem('username', username);
                 localStorage.setItem('isLoggedIn', 'true');
                 document.getElementById('userInfo').textContent = username;
+                updateProfile();
                 if (loginSpinner) loginSpinner.classList.remove('active');
                 log(`Logged in as ${username} (mock)`);
                 showPage('dashboard');
             }, 1000);
+        }
+
+        function logout() {
+            isLoggedIn = false;
+            username = 'Guest';
+            localStorage.removeItem('username');
+            localStorage.removeItem('isLoggedIn');
+            document.getElementById('userInfo').textContent = username;
+            updateProfile();
+            log('Logged out.');
+            showPage('login');
+        }
+
+        function updateProfile() {
+            const profileUsername = document.getElementById('profileUsername');
+            const profileId = document.getElementById('profileId');
+            const profileJoinDate = document.getElementById('profileJoinDate');
+            const profileAvatar = document.getElementById('profileAvatar');
+            if (profileUsername && profileId && profileJoinDate && profileAvatar) {
+                profileUsername.textContent = `Username: ${username}`;
+                profileId.textContent = `User ID: ${isLoggedIn ? 'ID' + Math.floor(Math.random() * 1000000) : 'N/A'}`;
+                profileJoinDate.textContent = `Join Date: ${isLoggedIn ? new Date().toLocaleDateString() : 'N/A'}`;
+                profileAvatar.src = isLoggedIn ? `https://via.placeholder.com/40?text=${username[0]}` : 'https://via.placeholder.com/40?text=User';
+            }
         }
 
         function updateLiveStream(message, streamId = 'liveStream') {
@@ -1127,6 +1106,7 @@
             isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
             username = localStorage.getItem('username') || 'Guest';
             document.getElementById('userInfo').textContent = username;
+            updateProfile();
             if (!isLoggedIn) showPage('login');
             else showPage('dashboard');
 
@@ -1138,11 +1118,12 @@
                 if (loginSpinner) loginSpinner.classList.add('active');
                 setTimeout(() => {
                     // Mock Discord API response
-                    username = 'DiscordUser' + Math.floor(Math.random() * 1000); // Replace with real API call in production
+                    username = 'DiscordUser' + Math.floor(Math.random() * 1000);
                     isLoggedIn = true;
                     localStorage.setItem('username', username);
                     localStorage.setItem('isLoggedIn', 'true');
                     document.getElementById('userInfo').textContent = username;
+                    updateProfile();
                     if (loginSpinner) loginSpinner.classList.remove('active');
                     log(`Logged in as ${username} via Discord`);
                     window.history.replaceState({}, document.title, window.location.pathname);
@@ -1314,7 +1295,7 @@
                         case '5': showPage('saved'); break;
                         case '6': showPage('history'); break;
                         case '7': showPage('settings'); break;
-                        case '8': showPage('help'); break;
+                        case '8': showPage('profile'); break;
                     }
                 }
             });
