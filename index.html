@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EmuHook: Cyber Terminal v7.0</title>
+    <title>EmuHook: Cyber Terminal v7.1</title>
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAALFJREFUWEftl8sNgzAMRF8c7H8lc7B7YfU6e2gEy6N48mTqkrBAIQiCIAiCIAiCIAiCIAiCIAiCIAiC4B/3eAdagKXF9z6Samap9dZYd95SaTmbT2u0mc6m8/F0MZtP5+P5YjabT+fj8WI2n87H48VsPp2Px4vZfDofjxfz+XQ+nk/n4/FiNp/Op/PpfDqfj8eL2Xw6H48Xs/l0Pp5P5+Pxfj6fj+fT+Xg+n88v9oC6xQAAAABJRU5ErkJggg==">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
@@ -364,8 +364,8 @@
     <div class="matrix-rain"><canvas id="matrix"></canvas></div>
     <div class="hologram"></div>
     <div class="nav-bar">
-        <div class="logo"><i class="fas fa-plug"></i> EmuHook v7.0</div>
-        <button onclick="showPage('login')" class="active" data-tooltip="Ctrl+0: Log in"><i class="fab fa-discord"></i> Login</button>
+        <div class="logo"><i class="fas fa-plug"></i> EmuHook v7.1</div>
+        <button onclick="showPage('login')" class="active" data-tooltip="Ctrl+0: Log in"><i class="fas fa-sign-in-alt"></i> Login</button>
         <button onclick="showPage('dashboard')" data-tooltip="Ctrl+1: View system stats"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
         <button onclick="showPage('home')" data-tooltip="Ctrl+2: Manage webhooks"><i class="fas fa-home"></i> Home</button>
         <button onclick="showPage('send')" data-tooltip="Ctrl+3: Send messages"><i class="fas fa-paper-plane"></i> Send</button>
@@ -380,16 +380,15 @@
         <div class="user-info" id="userInfo">Guest</div>
         <div id="login" class="page active">
             <div class="category">
-                <div class="category-header"><i class="fab fa-discord"></i> Discord Login</div>
+                <div class="category-header"><i class="fas fa-sign-in-alt"></i> User Login</div>
                 <div class="category-content active">
-                    <p class="neon mb-2">Log in with Discord to access EmuHook.</p>
-                    <button onclick="discordLogin()" data-tooltip="Authorize with Discord"><i class="fab fa-discord"></i> Log in with Discord</button>
-                    <label class="block text-sm neon mb-2 mt-2">Username</label>
-                    <input type="text" id="loginUsername" placeholder="Enter your Discord username" data-tooltip="Your Discord username">
+                    <p class="neon mb-2">Log in to access EmuHook.</p>
+                    <label class="block text-sm neon mb-2">Username</label>
+                    <input type="text" id="loginUsername" placeholder="Enter your username" data-tooltip="Your username">
                     <label class="block text-sm neon mb-2 mt-2">Password</label>
                     <input type="password" id="loginPassword" placeholder="Enter your password" data-tooltip="Your password">
                     <div class="flex gap-2 mt-2">
-                        <button onclick="mockLogin()" data-tooltip="Log in (temporary mock)"><i class="fas fa-sign-in-alt"></i> Mock Login</button>
+                        <button onclick="mockLogin()" data-tooltip="Log in"><i class="fas fa-sign-in-alt"></i> Login</button>
                     </div>
                     <div class="spinner" id="loginSpinner"></div>
                 </div>
@@ -571,8 +570,25 @@
                             <img id="profileAvatar" src="https://via.placeholder.com/40?text=User" class="profile-avatar" alt="User Avatar">
                             <p id="profileUsername" class="neon">Username: Guest</p>
                         </div>
+                        <p id="profileDisplayName" class="neon">Display Name: Guest</p>
                         <p id="profileId" class="neon">User ID: N/A</p>
                         <p id="profileJoinDate" class="neon">Join Date: N/A</p>
+                    </div>
+                    <div class="profile-section">
+                        <h3 class="neon"><i class="fas fa-edit"></i> Customize Profile</h3>
+                        <label class="block text-sm neon mb-2">Change Username</label>
+                        <input type="text" id="newUsername" placeholder="New username" data-tooltip="Enter new username">
+                        <button onclick="changeUsername()" data-tooltip="Update username" class="mt-2"><i class="fas fa-save"></i> Update Username</button>
+                        <label class="block text-sm neon mb-2 mt-2">Change Display Name</label>
+                        <input type="text" id="newDisplayName" placeholder="New display name" data-tooltip="Enter new display name">
+                        <button onclick="changeDisplayName()" data-tooltip="Update display name" class="mt-2"><i class="fas fa-save"></i> Update Display Name</button>
+                        <label class="block text-sm neon mb-2 mt-2">Change Avatar</label>
+                        <input type="file" id="newAvatar" accept="image/png,image/jpeg" data-tooltip="Upload new avatar image">
+                        <button onclick="changeAvatar()" data-tooltip="Update avatar" class="mt-2"><i class="fas fa-image"></i> Update Avatar</button>
+                        <label class="block text-sm neon mb-2 mt-2">Change Join Date</label>
+                        <input type="date" id="newJoinDate" data-tooltip="Select new join date">
+                        <button onclick="changeJoinDate()" data-tooltip="Update join date" class="mt-2"><i class="fas fa-calendar"></i> Update Join Date</button>
+                        <button onclick="resetProfile()" data-tooltip="Reset profile to defaults" class="mt-2"><i class="fas fa-undo"></i> Reset Profile</button>
                     </div>
                     <div class="flex gap-2 mt-2">
                         <button onclick="logout()" data-tooltip="Log out of EmuHook"><i class="fas fa-sign-out-alt"></i> Log Out</button>
@@ -604,6 +620,7 @@
         let startTime = Date.now();
         let isLoggedIn = false;
         let username = 'Guest';
+        let displayName = 'Guest';
         let beep, successSound, messageEditor, spamMessageEditor;
 
         function log(message) {
@@ -643,16 +660,6 @@
             if (beep) beep.play();
         }
 
-        function discordLogin() {
-            const loginSpinner = document.getElementById('loginSpinner');
-            if (loginSpinner) loginSpinner.classList.add('active');
-            const authUrl = 'https://discord.com/oauth2/authorize?client_id=1237165097747746946&permissions=2048&integration_type=0&scope=bot+applications.commands&redirect_uri=' + encodeURIComponent(window.location.href) + '&response_type=code';
-            log('Redirecting to Discord for authentication...');
-            setTimeout(() => {
-                window.location.href = authUrl;
-            }, 1000);
-        }
-
         function mockLogin() {
             const usernameInput = document.getElementById('loginUsername');
             const passwordInput = document.getElementById('loginPassword');
@@ -673,13 +680,16 @@
             if (loginSpinner) loginSpinner.classList.add('active');
             setTimeout(() => {
                 username = inputUsername;
+                displayName = inputUsername;
                 isLoggedIn = true;
                 localStorage.setItem('username', username);
+                localStorage.setItem('displayName', displayName);
                 localStorage.setItem('isLoggedIn', 'true');
-                document.getElementById('userInfo').textContent = username;
+                localStorage.setItem('joinDate', new Date().toISOString().split('T')[0]);
+                document.getElementById('userInfo').textContent = displayName;
                 updateProfile();
                 if (loginSpinner) loginSpinner.classList.remove('active');
-                log(`Logged in as ${username} (mock)`);
+                log(`Logged in as ${username}`);
                 showPage('dashboard');
             }, 1000);
         }
@@ -687,24 +697,119 @@
         function logout() {
             isLoggedIn = false;
             username = 'Guest';
+            displayName = 'Guest';
             localStorage.removeItem('username');
+            localStorage.removeItem('displayName');
             localStorage.removeItem('isLoggedIn');
-            document.getElementById('userInfo').textContent = username;
+            localStorage.removeItem('avatar');
+            localStorage.removeItem('joinDate');
+            document.getElementById('userInfo').textContent = displayName;
             updateProfile();
             log('Logged out.');
             showPage('login');
         }
 
+        function changeUsername() {
+            const newUsernameInput = document.getElementById('newUsername');
+            if (!newUsernameInput) {
+                log('Error: Username input not found.');
+                return;
+            }
+            const newUsername = newUsernameInput.value.trim();
+            if (!newUsername) {
+                log('Error: New username required.');
+                return;
+            }
+            username = newUsername;
+            if (!localStorage.getItem('displayName')) {
+                displayName = newUsername;
+                localStorage.setItem('displayName', displayName);
+                document.getElementById('userInfo').textContent = displayName;
+            }
+            localStorage.setItem('username', username);
+            newUsernameInput.value = '';
+            updateProfile();
+            log(`Username updated to ${username}`);
+        }
+
+        function changeDisplayName() {
+            const newDisplayNameInput = document.getElementById('newDisplayName');
+            if (!newDisplayNameInput) {
+                log('Error: Display name input not found.');
+                return;
+            }
+            const newDisplayName = newDisplayNameInput.value.trim();
+            if (!newDisplayName) {
+                log('Error: New display name required.');
+                return;
+            }
+            displayName = newDisplayName;
+            localStorage.setItem('displayName', displayName);
+            document.getElementById('userInfo').textContent = displayName;
+            newDisplayNameInput.value = '';
+            updateProfile();
+            log(`Display name updated to ${displayName}`);
+        }
+
+        function changeAvatar() {
+            const newAvatarInput = document.getElementById('newAvatar');
+            if (!newAvatarInput || !newAvatarInput.files[0]) {
+                log('Error: No avatar image selected.');
+                return;
+            }
+            const file = newAvatarInput.files[0];
+            const reader = new FileReader();
+            reader.onload = () => {
+                localStorage.setItem('avatar', reader.result);
+                updateProfile();
+                log('Avatar updated.');
+            };
+            reader.onerror = () => log('Error reading avatar image.');
+            reader.readAsDataURL(file);
+            newAvatarInput.value = '';
+        }
+
+        function changeJoinDate() {
+            const newJoinDateInput = document.getElementById('newJoinDate');
+            if (!newJoinDateInput) {
+                log('Error: Join date input not found.');
+                return;
+            }
+            const newJoinDate = newJoinDateInput.value;
+            if (!newJoinDate) {
+                log('Error: New join date required.');
+                return;
+            }
+            localStorage.setItem('joinDate', newJoinDate);
+            newJoinDateInput.value = '';
+            updateProfile();
+            log(`Join date updated to ${newJoinDate}`);
+        }
+
+        function resetProfile() {
+            localStorage.removeItem('avatar');
+            localStorage.removeItem('displayName');
+            localStorage.setItem('joinDate', new Date().toISOString().split('T')[0]);
+            displayName = username;
+            localStorage.setItem('displayName', displayName);
+            document.getElementById('userInfo').textContent = displayName;
+            updateProfile();
+            log('Profile reset to defaults.');
+        }
+
         function updateProfile() {
             const profileUsername = document.getElementById('profileUsername');
+            const profileDisplayName = document.getElementById('profileDisplayName');
             const profileId = document.getElementById('profileId');
             const profileJoinDate = document.getElementById('profileJoinDate');
             const profileAvatar = document.getElementById('profileAvatar');
-            if (profileUsername && profileId && profileJoinDate && profileAvatar) {
+            if (profileUsername && profileDisplayName && profileId && profileJoinDate && profileAvatar) {
                 profileUsername.textContent = `Username: ${username}`;
+                profileDisplayName.textContent = `Display Name: ${displayName}`;
                 profileId.textContent = `User ID: ${isLoggedIn ? 'ID' + Math.floor(Math.random() * 1000000) : 'N/A'}`;
-                profileJoinDate.textContent = `Join Date: ${isLoggedIn ? new Date().toLocaleDateString() : 'N/A'}`;
-                profileAvatar.src = isLoggedIn ? `https://via.placeholder.com/40?text=${username[0]}` : 'https://via.placeholder.com/40?text=User';
+                const joinDate = localStorage.getItem('joinDate') || (isLoggedIn ? new Date().toISOString().split('T')[0] : 'N/A');
+                profileJoinDate.textContent = `Join Date: ${joinDate}`;
+                profileAvatar.src = localStorage.getItem('avatar') || (isLoggedIn ? `https://via.placeholder.com/40?text=${username[0]}` : 'https://via.placeholder.com/40?text=User');
             }
         }
 
@@ -869,11 +974,11 @@
                 try {
                     decryptedUrl = CryptoJS.AES.decrypt(url, 'secret-key').toString(CryptoJS.enc.Utf8);
                     if (!/^https?:\/\//.test(decryptedUrl)) {
-                        log(`Skipped invalid webhook in saved list: ${name} (Invalid URL format)`);
+                        log(`Skipped invalid webhook: ${name} (Invalid URL format)`);
                         return;
                     }
                 } catch (e) {
-                    log(`Skipped webhook in saved list: ${name} (Decryption error: ${e.message})`);
+                    log(`Skipped webhook: ${name} (Decryption error: ${e.message})`);
                     return;
                 }
                 const div = document.createElement('div');
@@ -1105,31 +1210,11 @@
             // Check Login State
             isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
             username = localStorage.getItem('username') || 'Guest';
-            document.getElementById('userInfo').textContent = username;
+            displayName = localStorage.getItem('displayName') || username;
+            document.getElementById('userInfo').textContent = displayName;
             updateProfile();
             if (!isLoggedIn) showPage('login');
             else showPage('dashboard');
-
-            // Handle OAuth2 Callback (Mock)
-            const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get('code');
-            if (code) {
-                const loginSpinner = document.getElementById('loginSpinner');
-                if (loginSpinner) loginSpinner.classList.add('active');
-                setTimeout(() => {
-                    // Mock Discord API response
-                    username = 'DiscordUser' + Math.floor(Math.random() * 1000);
-                    isLoggedIn = true;
-                    localStorage.setItem('username', username);
-                    localStorage.setItem('isLoggedIn', 'true');
-                    document.getElementById('userInfo').textContent = username;
-                    updateProfile();
-                    if (loginSpinner) loginSpinner.classList.remove('active');
-                    log(`Logged in as ${username} via Discord`);
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                    showPage('dashboard');
-                }, 1000);
-            }
 
             // Theme Color Sync
             const themeColorInput = document.getElementById('themeColor');
