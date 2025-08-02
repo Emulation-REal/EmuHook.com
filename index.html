@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EmuHook: Cyber Terminal v5.1</title>
+    <title>EmuHook: Discord Webhook v5.4</title>
     <style>
         * {
             margin: 0;
@@ -15,17 +15,18 @@
             background: #0a0a0a;
             color: #ff1a1a;
             overflow-x: hidden;
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="%230a0a0a" stroke="%23ff4d4d" stroke-width="2"/><path d="M12 6v12M6 12h12" stroke="%23ff4d4d" stroke-width="2"/></svg>'), auto;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="%230a0a0a" stroke="%23ff4d4d" stroke-width="3"/><path d="M16 6v20M6 16h20" stroke="%23ff4d4d" stroke-width="3" stroke-linecap="round"/></svg>'), auto;
         }
         .cursor-trail {
             position: fixed;
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             background: #ff4d4d;
             border-radius: 50%;
             pointer-events: none;
             z-index: 1000;
-            opacity: 0.6;
+            opacity: 0.7;
+            transition: transform 0.05s ease-out, opacity 0.2s;
         }
         #particles-js {
             position: fixed;
@@ -351,7 +352,7 @@
     <div id="particles-js"></div>
     <div class="hologram"></div>
     <div class="nav-bar">
-        <div class="logo">EmuHook v5.1</div>
+        <div class="logo">EmuHook v5.4</div>
         <button onclick="showPage('home')" class="active" data-tooltip="Ctrl+1: Webhook Control">🖥️ Home</button>
         <button onclick="showPage('send')" data-tooltip="Ctrl+2: Send Messages">📤 Send</button>
         <button onclick="showPage('spam')" data-tooltip="Ctrl+3: Spam (Test Only)">⚡ Spam</button>
@@ -393,19 +394,7 @@
                     <svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 3h10v10H3z" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Bot Control
                 </div>
                 <div class="category-content">
-                    <select id="botStatus" data-tooltip="Set bot status">
-                        <option value="online">Online</option>
-                        <option value="idle">Idle</option>
-                        <option value="dnd">Do Not Disturb</option>
-                        <option value="invisible">Invisible</option>
-                    </select>
-                    <button onclick="updateBotStatus()" data-tooltip="Apply status">
-                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h12" stroke="#ff1a1a" stroke-width="2"/></svg> Update Status
-                    </button>
-                    <button onclick="fetchChannels()" data-tooltip="Fetch channels">
-                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 4h8v8H4z" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Fetch Channels
-                    </button>
-                    <div id="channelList"></div>
+                    <p class="neon">Bot features require server-side setup. Use webhooks for client-side messaging.</p>
                 </div>
             </div>
         </div>
@@ -416,7 +405,7 @@
                 </div>
                 <div class="category-content active">
                     <select id="destination" data-tooltip="Select target">
-                        <option value="">Select Webhook/Channel</option>
+                        <option value="">Select Webhook</option>
                     </select>
                     <select id="predefinedMessages" data-tooltip="Choose predefined message">
                         <option value="">Custom Message</option>
@@ -432,6 +421,7 @@
                     <input type="text" id="message" placeholder="Enter message or select predefined" data-tooltip="Craft message">
                     <input type="file" id="attachment" accept="image/*,text/*" data-tooltip="Upload file">
                     <label><input type="checkbox" id="tts" data-tooltip="Enable TTS"> TTS</label>
+                    <label><input type="checkbox" id="rainbowMessage" data-tooltip="Rainbow color & wave spacing"> Rainbow Message</label>
                     <input type="text" id="reactions" placeholder="Emojis (e.g., 😄👍)" maxlength="10" data-tooltip="Add emojis">
                     <input type="number" id="sendDelay" min="0" step="1" placeholder="Delay (s)" data-tooltip="Schedule delay">
                     <div class="category">
@@ -441,7 +431,7 @@
                         <div class="category-content">
                             <input type="text" id="embedTitle" placeholder="Embed Title" data-tooltip="Set title">
                             <input type="text" id="embedDescription" placeholder="Embed Description" data-tooltip="Set description">
-                            <input type="color" id="embedColor" value="#ff1a1a" data-tooltip="Set color">
+                            <input type="color" id="embedColor" value="#ff1a1a" data-tooltip="Set color (ignored if Rainbow enabled)">
                         </div>
                     </div>
                     <button onclick="sendMessage()" data-tooltip="Send message">
@@ -464,7 +454,7 @@
                 </div>
                 <div class="category-content active">
                     <select id="spamDestination" data-tooltip="Select target">
-                        <option value="">Select Webhook/Channel</option>
+                        <option value="">Select Webhook</option>
                     </select>
                     <select id="spamPredefinedMessages" data-tooltip="Choose predefined message">
                         <option value="">Custom Message</option>
@@ -484,6 +474,7 @@
                     <input type="text" id="messageVariation" placeholder="Prefix/Suffix (e.g., [x])" data-tooltip="Add variation">
                     <label><input type="checkbox" id="randomizeMessages" data-tooltip="Randomize messages"> Randomize</label>
                     <label><input type="checkbox" id="spamTts" data-tooltip="Enable TTS"> TTS</label>
+                    <label><input type="checkbox" id="spamRainbowMessage" data-tooltip="Rainbow color & wave spacing"> Rainbow Message</label>
                     <div id="rateLimitStatus" class="neon">Rate Limit: 100%</div>
                     <button onclick="spamMessages()" data-tooltip="Start spamming">
                         <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h12M2 8l4-4M2 8l4 4" stroke="#ff1a1a" stroke-width="2" fill="none"/></svg> Start
@@ -524,15 +515,15 @@
                 </div>
                 <div class="category-content active">
                     <label>Cursor Trail Intensity:</label>
-                    <input type="range" id="cursorTrailIntensity" min="0.1" max="1" step="0.1" value="0.6" data-tooltip="Adjust trail opacity">
+                    <input type="range" id="cursorTrailIntensity" min="0.1" max="1" step="0.1" value="0.7" data-tooltip="Adjust trail opacity">
                     <label>Cursor Trail Color:</label>
                     <input type="color" id="cursorTrailColor" value="#ff4d4d" data-tooltip="Set trail color">
                     <label>Particle Density:</label>
-                    <input type="range" id="particleDensity" min="50" max=200 step="10" value="100" data-tooltip="Adjust particle count">
+                    <input type="range" id="particleDensity" min="50" max="200" step="10" value="100" data-tooltip="Adjust particle count">
                     <label>Particle Speed:</label>
                     <input type="range" id="particleSpeed" min="1" max="8" step="1" value="4" data-tooltip="Adjust particle speed">
                     <label>Sound Volume:</label>
-                    <input type="range" id="soundVolume" min="0" max="1" step="0.1" value="0.3" data-tooltip="Adjust beep volume">
+                    <input type="range" id="soundVolume" min="0" max="1" step="0.1" value="0.3" data-tooltip="Adjust synth beep volume">
                     <select id="theme" data-tooltip="Select UI theme">
                         <option value="theme-dark-red">Dark Red</option>
                         <option value="theme-neon-green">Neon Green</option>
@@ -564,14 +555,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/howler@2.2.3/dist/howler.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/discord.js@14.15.3/dist/discord.min.js"></script>
     <script>
-        // Warning: Client-side bot token exposure is insecure. Use server-side for production.
-        const BOT_TOKEN = 'lPtbq-Xicowj5StE9qHztXPclAJd5ekN';
-        const client = new Discord.Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
-        client.login(BOT_TOKEN).catch(err => log('Bot login error: ' + err.message));
-
         // Particles.js
         let particleConfig = {
             particles: {
@@ -585,26 +569,58 @@
         };
         particlesJS('particles-js', particleConfig);
 
+        // Synth Sound
+        let audioCtx;
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.error('AudioContext initialization failed:', e);
+            log('Error: AudioContext not supported in this browser.');
+        }
+
+        function playSynthBeep() {
+            if (!audioCtx) return log('Error: AudioContext unavailable.');
+            try {
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(document.getElementById('soundVolume')?.value || 0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.2);
+            } catch (e) {
+                log('Synth sound error: ' + e.message);
+            }
+        }
+
         // Cursor Trail
         const trails = [];
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 12; i++) {
             const trail = document.createElement('div');
             trail.className = 'cursor-trail';
             document.body.appendChild(trail);
             trails.push(trail);
         }
         let trailIndex = 0;
+        let lastX = 0, lastY = 0;
         document.addEventListener('mousemove', (e) => {
-            const trail = trails[trailIndex];
-            trail.style.left = e.clientX + 'px';
-            trail.style.top = e.clientY + 'px';
-            trail.style.opacity = document.getElementById('cursorTrailIntensity')?.value || 0.6;
-            trail.style.background = document.getElementById('cursorTrailColor')?.value || '#ff4d4d';
-            trailIndex = (trailIndex + 1) % trails.length;
+            const dx = e.clientX - lastX;
+            const dy = e.clientY - lastY;
+            if (Math.sqrt(dx * dx + dy * dy) > 4) {
+                const trail = trails[trailIndex];
+                trail.style.left = e.clientX + 'px';
+                trail.style.top = e.clientY + 'px';
+                trail.style.opacity = document.getElementById('cursorTrailIntensity')?.value || 0.7;
+                trail.style.background = document.getElementById('cursorTrailColor')?.value || '#ff4d4d';
+                trailIndex = (trailIndex + 1) % trails.length;
+                lastX = e.clientX;
+                lastY = e.clientY;
+            }
         });
-
-        // Sound Effects
-        const beep = new Howl({ src: ['https://cdn.pixabay.com/audio/2022/03/10/audio_6b1c7f6b1f.mp3'], volume: 0.3 });
 
         // State
         let webhookUrl = '';
@@ -614,10 +630,10 @@
         let user = null;
         let messagesSent = 0;
         const startTime = Date.now();
-        let channels = [];
+        const rainbowColors = [0xff0000, 0xff9900, 0xffff00, 0x00ff00, 0x00ffff, 0x0000ff, 0xff00ff];
 
         function log(message) {
-            beep.play();
+            playSynthBeep();
             const logContent = document.getElementById('logContent');
             const typed = new Typed('#logContent', {
                 strings: [`> [${new Date().toLocaleTimeString()}] ${message}\n${logContent.textContent}`],
@@ -628,6 +644,7 @@
         }
 
         function updateLiveStream(message, streamId = 'liveStream') {
+            playSynthBeep();
             const stream = document.getElementById(streamId);
             const entry = document.createElement('div');
             entry.textContent = `> [${new Date().toLocaleTimeString()}] ${user ? user.username : 'EmuHook'}: ${message}`;
@@ -646,37 +663,38 @@
         }
 
         function showPage(pageId) {
+            playSynthBeep();
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.querySelectorAll('.nav-bar button').forEach(btn => btn.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             document.querySelector(`button[onclick="showPage('${pageId}')"]`).classList.add('active');
-            beep.play();
         }
 
         function toggleCategory(header) {
+            playSynthBeep();
             header.nextElementSibling.classList.toggle('active');
-            beep.play();
         }
 
         function toggleLogWindow() {
+            playSynthBeep();
             document.getElementById('logWindow').classList.toggle('active');
-            beep.play();
         }
 
         async function validateWebhook() {
+            playSynthBeep();
             const url = document.getElementById('webhookUrl').value.trim();
             if (!url) return log('Error: Webhook URL required.');
             document.getElementById('validateSpinner').classList.add('active');
             try {
-                const response = await fetch(url, { method: 'GET' });
+                const response = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
                 document.getElementById('validateSpinner').classList.remove('active');
-                if (response.status === 200) {
+                if (response.ok) {
                     webhookUrl = url;
                     log('Webhook validated.');
                     fetchWebhookProfile(url);
                     updateDestinationSelects();
                 } else {
-                    log('Invalid webhook URL.');
+                    log(`Invalid webhook URL: ${response.status}`);
                 }
             } catch (error) {
                 document.getElementById('validateSpinner').classList.remove('active');
@@ -686,7 +704,7 @@
 
         async function fetchWebhookProfile(url) {
             try {
-                const response = await fetch(url);
+                const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
                 const data = await response.json();
                 const avatarUrl = data.avatar ? `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=64` : null;
                 document.getElementById('webhookProfile').innerHTML = `
@@ -700,6 +718,7 @@
         }
 
         function saveWebhook() {
+            playSynthBeep();
             const url = document.getElementById('webhookUrl').value.trim();
             const name = document.getElementById('webhookName').value.trim() || `Webhook ${savedWebhooks.length + 1}`;
             if (!webhookUrl) return log('Error: No valid webhook.');
@@ -728,6 +747,7 @@
         }
 
         function loadWebhook(url) {
+            playSynthBeep();
             webhookUrl = url;
             document.getElementById('webhookUrl').value = url;
             log('Webhook loaded: ' + url);
@@ -736,6 +756,7 @@
         }
 
         function deleteWebhook(url) {
+            playSynthBeep();
             savedWebhooks = savedWebhooks.filter(w => w.url !== url);
             localStorage.setItem('webhooks', JSON.stringify(savedWebhooks));
             log('Webhook deleted: ' + url);
@@ -744,6 +765,7 @@
         }
 
         function clearSavedWebhooks() {
+            playSynthBeep();
             savedWebhooks = [];
             localStorage.setItem('webhooks', JSON.stringify(savedWebhooks));
             log('Webhooks cleared.');
@@ -764,57 +786,23 @@
         function updateDestinationSelects() {
             const selects = [document.getElementById('destination'), document.getElementById('spamDestination')];
             selects.forEach(select => {
-                select.innerHTML = '<option value="">Select Webhook/Channel</option>';
+                select.innerHTML = '<option value="">Select Webhook</option>';
                 savedWebhooks.forEach(({ name, url }) => {
                     const option = document.createElement('option');
                     option.value = `webhook:${url}`;
                     option.textContent = `Webhook: ${name}`;
                     select.appendChild(option);
                 });
-                channels.forEach(channel => {
-                    const option = document.createElement('option');
-                    option.value = `channel:${channel.id}`;
-                    option.textContent = `Channel: ${channel.name} (#${channel.id})`;
-                    select.appendChild(option);
-                });
             });
         }
 
-        async function loginWithDiscord() {
+        function loginWithDiscord() {
+            playSynthBeep();
             log('Discord login not implemented in client-side demo.');
         }
 
-        async function updateBotStatus() {
-            const status = document.getElementById('botStatus').value;
-            try {
-                await client.user.setStatus(status);
-                log(`Bot status updated to: ${status}`);
-            } catch (error) {
-                log('Status update error: ' + error.message);
-            }
-        }
-
-        async function fetchChannels() {
-            try {
-                const guilds = client.guilds.cache;
-                channels = [];
-                guilds.forEach(guild => {
-                    guild.channels.cache.forEach(channel => {
-                        if (channel.type === 'GUILD_TEXT') {
-                            channels.push({ id: channel.id, name: channel.name });
-                        }
-                    });
-                });
-                const channelList = document.getElementById('channelList');
-                channelList.innerHTML = channels.map(c => `<div>${c.name} (#${c.id})</div>`).join('');
-                updateDestinationSelects();
-                log('Channels fetched: ' + channels.length);
-            } catch (error) {
-                log('Channel fetch error: ' + error.message);
-            }
-        }
-
         function formatText(type) {
+            playSynthBeep();
             const input = document.getElementById('message');
             const start = input.selectionStart;
             const end = input.selectionEnd;
@@ -825,50 +813,57 @@
             log(`Applied ${type} formatting.`);
         }
 
+        function applyWaveSpacing(message, index) {
+            const indent = Math.round(Math.sin(index / 2) * 10);
+            return ' '.repeat(Math.max(0, indent)) + message;
+        }
+
         async function sendMessage() {
+            playSynthBeep();
             const destination = document.getElementById('destination').value;
             let message = document.getElementById('predefinedMessages').value || document.getElementById('message').value;
             const tts = document.getElementById('tts').checked;
+            const rainbow = document.getElementById('rainbowMessage').checked;
             const reactions = document.getElementById('reactions').value.split('').filter(c => c.match(/\p{Emoji}/u)).slice(0, 5);
             const delay = parseInt(document.getElementById('sendDelay').value) || 0;
             const file = document.getElementById('attachment').files[0];
             const embed = {
                 title: document.getElementById('embedTitle').value || undefined,
                 description: document.getElementById('embedDescription').value || undefined,
-                color: parseInt(document.getElementById('embedColor').value.replace('#', ''), 16) || undefined
+                color: rainbow ? rainbowColors[Math.floor(Math.random() * rainbowColors.length)] : parseInt(document.getElementById('embedColor').value.replace('#', ''), 16) || undefined
             };
 
             if (!destination || (!message && !file && !embed.title && !embed.description)) return log('Error: Select destination and provide content.');
 
             message = message.replace('{user}', user ? user.username : 'EmuHook').replace('{time}', new Date().toLocaleTimeString());
+            if (rainbow) message = applyWaveSpacing(message, messagesSent);
+
             document.getElementById('sendSpinner').classList.add('active');
 
             try {
                 if (destination.startsWith('webhook:')) {
                     const url = destination.replace('webhook:', '');
+                    const payload = {
+                        content: message,
+                        tts: tts,
+                        embeds: embed.title || embed.description ? [embed] : undefined
+                    };
                     const formData = new FormData();
-                    formData.append('content', message);
-                    if (tts) formData.append('tts', 'true');
-                    if (embed.title || embed.description) formData.append('embeds', JSON.stringify([embed]));
+                    formData.append('payload_json', JSON.stringify(payload));
                     if (file) formData.append('file', file);
                     await new Promise(resolve => setTimeout(resolve, delay * 1000));
-                    const response = await fetch(url, { method: 'POST', body: formData });
-                    if (response.status === 204) {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (response.ok) {
                         log('Message sent via webhook.');
                         updateLiveStream(message);
                         if (reactions.length) log('Reactions not supported for webhooks.');
                     } else {
-                        log('Webhook send error: ' + response.status);
+                        log(`Webhook send error: ${response.status} ${response.statusText}`);
                     }
-                } else if (destination.startsWith('channel:')) {
-                    const channelId = destination.replace('channel:', '');
-                    const channel = client.channels.cache.get(channelId);
-                    if (!channel) return log('Error: Channel not found.');
-                    await new Promise(resolve => setTimeout(resolve, delay * 1000));
-                    const msg = await channel.send({ content: message, tts, embeds: embed.title || embed.description ? [embed] : [], files: file ? [file] : [] });
-                    for (const emoji of reactions) await msg.react(emoji);
-                    log('Message sent via bot.');
-                    updateLiveStream(message);
                 }
             } catch (error) {
                 log('Send error: ' + error.message);
@@ -879,6 +874,7 @@
 
         async function spamMessages() {
             if (isSpamming) return log('Spam already running.');
+            playSynthBeep();
             const destination = document.getElementById('spamDestination').value;
             let message = document.getElementById('spamPredefinedMessages').value || document.getElementById('spamMessage').value;
             const count = parseInt(document.getElementById('spamCount').value) || 1;
@@ -888,6 +884,7 @@
             const variation = document.getElementById('messageVariation').value;
             const randomize = document.getElementById('randomizeMessages').checked;
             const tts = document.getElementById('spamTts').checked;
+            const rainbow = document.getElementById('spamRainbowMessage').checked;
             const predefined = document.getElementById('spamPredefinedMessages').options;
             if (!destination || (!message && !randomize)) return log('Error: Select destination and provide content.');
 
@@ -898,15 +895,24 @@
             const sendSingle = async () => {
                 const msg = randomize ? predefined[Math.floor(Math.random() * predefined.length)].value : message;
                 const variedMsg = variation ? `${variation.replace('[x]', Math.floor(Math.random() * 100))}${msg}${variation.replace('[x]', Math.floor(Math.random() * 100))}` : msg.replace('{user}', user ? user.username : 'EmuHook').replace('{time}', new Date().toLocaleTimeString());
+                const finalMsg = rainbow ? applyWaveSpacing(variedMsg, sent) : variedMsg;
                 if (destination.startsWith('webhook:')) {
                     const url = destination.replace('webhook:', '');
-                    await fetch(url, { method: 'POST', body: new FormData().append('content', variedMsg).append('tts', tts ? 'true' : 'false') });
-                    updateLiveStream(variedMsg, 'liveStreamSpam');
-                } else if (destination.startsWith('channel:')) {
-                    const channelId = destination.replace('channel:', '');
-                    const channel = client.channels.cache.get(channelId);
-                    if (channel) await channel.send({ content: variedMsg, tts });
-                    updateLiveStream(variedMsg, 'liveStreamSpam');
+                    const payload = {
+                        content: finalMsg,
+                        tts: tts,
+                        embeds: rainbow ? [{ color: rainbowColors[sent % rainbowColors.length] }] : undefined
+                    };
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        body: JSON.stringify(payload),
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+                    });
+                    if (response.ok) {
+                        updateLiveStream(finalMsg, 'liveStreamSpam');
+                    } else {
+                        log(`Webhook spam error: ${response.status} ${response.statusText}`);
+                    }
                 }
                 sent++;
                 document.getElementById('rateLimitStatus').textContent = `Rate Limit: ${Math.round((1 - sent / count) * 100)}%`;
@@ -941,23 +947,25 @@
         }
 
         function cancelSpam() {
+            playSynthBeep();
             isSpamming = false;
             document.getElementById('spamSpinner').classList.remove('active');
             log('Spam sequence cancelled.');
         }
 
         function applySettings() {
+            playSynthBeep();
             const theme = document.getElementById('theme').value;
             document.body.className = theme;
             particleConfig.particles.color.value = theme === 'theme-neon-green' ? '#00ff00' : theme === 'theme-cyber-blue' ? '#00b7eb' : '#ff1a1a';
             particleConfig.particles.number.value = parseInt(document.getElementById('particleDensity').value);
             particleConfig.particles.move.speed = parseInt(document.getElementById('particleSpeed').value);
             particlesJS('particles-js', particleConfig);
-            beep.volume(document.getElementById('soundVolume').value);
             log('Settings applied.');
         }
 
         function logout() {
+            playSynthBeep();
             user = null;
             document.getElementById('userInfo').textContent = 'Not Logged In';
             log('Logged out.');
